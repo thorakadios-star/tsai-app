@@ -85,7 +85,7 @@ function useTipsters(){
   const [error,setError]=useState(null);
   useEffect(()=>{
     sb.from('tipsters_profiles')
-      .select('id,display_name,username,bio,sport_focus,is_verified,has_premium,price_monthly,total_picks,wins,losses,yield_pct,win_rate_pct,profit_units,avatar_url,created_at')
+      .select('id,display_name,username,bio,sport_focus,is_verified,has_premium,price_monthly,total_picks,wins,losses,voids,yield_pct,win_rate_pct,profit_units,total_staked,created_at')
       .order('yield_pct',{ascending:false})
       .limit(20)
       .then(({data,error})=>{
@@ -103,7 +103,7 @@ function usePicks(tipsterId){
   useEffect(()=>{
     if(!tipsterId){setLoading(false);return;}
     sb.from('boletos')
-      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,liga,deporte,confianza,fecha_procesado')
+      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado')
       .eq('tipster_id',tipsterId)
       .order('fecha_procesado',{ascending:false})
       .limit(15)
@@ -412,7 +412,7 @@ function ChatScreen({params,onTab}){
             <div style={{width:7,background:ec,flexShrink:0}}/>
             <div style={{flex:1,padding:14}}>
               <div style={{display:'flex',alignItems:'center',marginBottom:7,gap:8}}>
-                <Kicker>{p.deporte||'Sport'}{p.liga?` · ${p.liga}`:''}</Kicker>
+                <Kicker>{p.tipo_apuesta||'Apuesta'}</Kicker>
                 <div style={{flex:1}}/>
                 <div style={{padding:'2px 7px',borderRadius:4,border:`1px solid ${ec}55`,background:`${ec}11`}}>
                   <Kicker c={ec} style={{fontSize:8}}>{estadoLabel[estado]||estado}</Kicker>
@@ -436,7 +436,7 @@ function ChatScreen({params,onTab}){
               </div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:`1px dashed ${C.border}`}}>
                 <div style={{display:'flex',alignItems:'center',gap:6}}>
-                  {p.confianza&&<><Kicker>CONF.</Kicker><Mono style={{fontSize:11,fontWeight:700,color:ec}}>{p.confianza}</Mono><div style={{width:1,height:8,background:C.borderStrong}}/></>}
+                  {p.tipo_acceso&&<><Kicker>ACCESO</Kicker><Mono style={{fontSize:11,fontWeight:700,color:ec}}}>{p.tipo_acceso}</Mono><div style={{width:1,height:8,background:C.borderStrong}}/></>}
                   {p.stake&&<><Kicker>STAKE</Kicker><Mono style={{fontSize:11,fontWeight:600}}>{p.stake}<span style={{color:C.ink2}}>u</span></Mono></>}
                 </div>
                 {p.profit!=null&&<Mono style={{fontSize:12,fontWeight:600,color:parseFloat(p.profit)>=0?C.positive:C.negative}}>
