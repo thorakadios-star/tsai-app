@@ -7,87 +7,68 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <style>
-/* ── Reset & base ──────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --accent:#5EEAD4;--accent-ink:#04111C;--accent2:#A855F7;
-  --positive:#34D399;--negative:#F87171;--gold:#FBBF24;
+  --accent:#5EEAD4;--accent-ink:#04111C;--positive:#34D399;--negative:#F87171;--gold:#FBBF24;
   --bg0:#060A18;--bg1:#0B1024;--bg2:#11183A;--bg3:#1A2350;
   --border:rgba(120,170,255,0.10);--border-strong:rgba(120,170,255,0.20);
-  --ink0:#EAF2FF;--ink1:rgba(234,242,255,0.70);
-  --ink2:rgba(234,242,255,0.45);--ink3:rgba(234,242,255,0.22);
+  --ink0:#EAF2FF;--ink1:rgba(234,242,255,0.70);--ink2:rgba(234,242,255,0.45);--ink3:rgba(234,242,255,0.22);
 }
 body{background:var(--bg0);color:var(--ink0);font-family:'Space Grotesk',system-ui,sans-serif;
   font-size:14px;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom,0px)}
 ::-webkit-scrollbar{display:none}
-
-/* ── Layout ────────────────────────────────────────── */
 .header{padding:52px 18px 14px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:10px}
 .logo{width:32px;height:32px;border-radius:8px;background:rgba(94,234,212,0.12);
   border:1px solid rgba(94,234,212,0.3);display:flex;align-items:center;justify-content:center;
-  font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:12px;color:var(--accent)}
-.brand-text .name{font-weight:700;font-size:14px;color:var(--ink0)}
-.brand-text .sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink2);
+  font-weight:900;font-size:12px;color:var(--accent)}
+.brand-name{font-weight:700;font-size:14px;color:var(--ink0)}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink2);
   letter-spacing:0.14em;text-transform:uppercase;margin-top:2px}
 .back-btn{height:34px;padding:0 14px;border-radius:999px;background:transparent;
   border:1px solid var(--border-strong);color:var(--ink1);font-size:12px;
   font-family:'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;
   display:flex;align-items:center;gap:6px}
-
 .content{padding:20px 18px;max-width:600px;margin:0 auto}
-
-/* ── Cards ─────────────────────────────────────────── */
 .card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;overflow:hidden}
 .card-body{padding:16px}
-.section-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;
+.section-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;
   text-transform:uppercase;color:var(--ink2);margin-bottom:10px;display:block}
-
-/* ── Upload zone ───────────────────────────────────── */
 .upload-zone{border:1px dashed rgba(94,234,212,0.35);border-radius:12px;
   padding:32px 20px;text-align:center;cursor:pointer;transition:all .15s;
   background:rgba(94,234,212,0.02);position:relative}
-.upload-zone:hover,.upload-zone.drag{background:rgba(94,234,212,0.06);
-  border-color:rgba(94,234,212,0.6)}
+.upload-zone:hover{background:rgba(94,234,212,0.06);border-color:rgba(94,234,212,0.6)}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
 .upload-icon{font-size:36px;margin-bottom:12px}
 .upload-title{font-weight:600;font-size:15px;color:var(--ink0);margin-bottom:4px}
 .upload-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink2);
   letter-spacing:0.1em;text-transform:uppercase}
-
-/* ── Preview ───────────────────────────────────────── */
-.preview-wrap{position:relative;border-radius:10px;overflow:hidden;margin-top:14px}
+.preview-wrap{position:relative;border-radius:10px;overflow:hidden;margin-top:14px;display:none}
 .preview-wrap img{width:100%;display:block;border-radius:10px}
 .preview-clear{position:absolute;top:8px;right:8px;width:28px;height:28px;
   border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid var(--border-strong);
   color:var(--ink0);font-size:16px;cursor:pointer;display:flex;align-items:center;
   justify-content:center;backdrop-filter:blur(8px)}
-
-/* ── Buttons ───────────────────────────────────────── */
-.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;
-  height:48px;width:100%;background:var(--accent);color:var(--accent-ink);
-  border:none;border-radius:999px;font-weight:700;font-size:13px;
-  letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;
-  transition:opacity .15s;margin-top:14px}
-.btn-primary:hover{opacity:.9}
+select{width:100%;height:44px;background:var(--bg2);border:1px solid var(--border-strong);
+  border-radius:8px;color:var(--ink0);padding:0 12px;font-size:13px;
+  font-family:'Space Grotesk',sans-serif;outline:none;margin-top:14px}
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;
+  width:100%;background:var(--accent);color:var(--accent-ink);border:none;border-radius:999px;
+  font-weight:700;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;
+  cursor:pointer;transition:opacity .15s;margin-top:14px}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-ghost{display:flex;align-items:center;justify-content:center;gap:6px;
-  height:44px;width:100%;background:rgba(255,255,255,0.03);color:var(--ink0);
+.btn-ghost{display:flex;align-items:center;justify-content:center;gap:6px;height:44px;
+  width:100%;background:rgba(255,255,255,0.03);color:var(--ink0);
   border:1px solid var(--border-strong);border-radius:999px;font-weight:500;
-  font-size:13px;cursor:pointer;transition:opacity .15s;margin-top:10px}
-.btn-ghost:hover{opacity:.8}
-.btn-success{display:flex;align-items:center;justify-content:center;gap:8px;
-  height:48px;width:100%;background:var(--positive);color:#04111C;
-  border:none;border-radius:999px;font-weight:700;font-size:13px;
-  cursor:pointer;transition:opacity .15s;margin-top:10px}
-.btn-success:hover{opacity:.9}
-.btn-danger{display:flex;align-items:center;justify-content:center;gap:8px;
-  height:44px;width:100%;background:rgba(248,113,113,0.1);color:var(--negative);
+  font-size:13px;cursor:pointer;margin-top:10px}
+.btn-success{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;
+  width:100%;background:var(--positive);color:#04111C;border:none;border-radius:999px;
+  font-weight:700;font-size:13px;cursor:pointer;margin-top:10px}
+.btn-danger{display:flex;align-items:center;justify-content:center;height:44px;
+  width:100%;background:rgba(248,113,113,0.1);color:var(--negative);
   border:1px solid rgba(248,113,113,0.3);border-radius:999px;font-weight:600;
   font-size:13px;cursor:pointer;margin-top:8px}
-
-/* ── Progress ──────────────────────────────────────── */
 .progress-wrap{margin-top:14px;display:none}
 .progress-wrap.visible{display:block}
 .progress-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink2);
@@ -98,43 +79,30 @@ body{background:var(--bg0);color:var(--ink0);font-family:'Space Grotesk',system-
 .progress-bar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);border-radius:2px;
   transition:width .4s ease;box-shadow:0 0 8px var(--accent)}
-
-/* ── Result card ───────────────────────────────────── */
 .result-section{margin-top:20px;display:none}
 .result-section.visible{display:block}
-.result-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .result-badge{padding:4px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;
   font-size:9px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600}
 .badge-bet365{background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
 .badge-winamax{background:rgba(129,140,248,0.12);color:#818cf8;border:1px solid rgba(129,140,248,0.3)}
 .badge-unknown{background:var(--bg3);color:var(--ink1);border:1px solid var(--border-strong)}
-
 .field-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .field-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;
   text-transform:uppercase;color:var(--ink2)}
 .field-value{background:var(--bg2);border:1px solid var(--border-strong);border-radius:8px;
-  padding:10px 12px;font-size:13px;color:var(--ink0);min-height:40px;
-  font-family:'Space Grotesk',sans-serif;word-break:break-word}
-.field-value.editable{cursor:text;outline:none}
-.field-value.editable:focus{border-color:rgba(94,234,212,0.5);
+  padding:10px 12px;font-size:13px;color:var(--ink0);min-height:40px;word-break:break-word}
+.field-value[contenteditable="true"]:focus{border-color:rgba(94,234,212,0.5);outline:none;
   box-shadow:0 0 0 3px rgba(94,234,212,0.08)}
-.field-value.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
-.field-value.accent{color:var(--accent);font-weight:600;font-family:'JetBrains Mono',monospace}
-.field-value.positive{color:var(--positive)}
-.field-value.negative{color:var(--negative)}
-
+.field-accent{color:var(--accent);font-weight:600;font-family:'JetBrains Mono',monospace}
+.field-mono{font-family:'JetBrains Mono',monospace;font-size:12px}
 .evento-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
   padding:12px;margin-bottom:8px}
 .evento-title{font-weight:600;font-size:13px;color:var(--ink0);margin-bottom:4px}
-.evento-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink2);
-  margin-bottom:8px}
+.evento-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink2);margin-bottom:8px}
 .sel-row{display:flex;align-items:center;justify-content:space-between;
   padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
 .sel-row:last-child{border-bottom:none}
-.sel-cuota{font-family:'JetBrains Mono',monospace;font-size:12px;
-  color:var(--accent);font-weight:600}
-
-/* ── Raw text ──────────────────────────────────────── */
+.sel-cuota{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);font-weight:600}
 .raw-toggle{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;
   text-transform:uppercase;color:var(--ink2);background:none;border:none;
   cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:6px}
@@ -143,19 +111,15 @@ body{background:var(--bg0);color:var(--ink0);font-family:'Space Grotesk',system-
   color:var(--ink2);line-height:1.7;white-space:pre-wrap;word-break:break-word;
   max-height:200px;overflow-y:auto;display:none}
 .raw-text.visible{display:block}
-
-/* ── Toast ─────────────────────────────────────────── */
 .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));
-  left:50%;transform:translateX(-50%) translateY(0);
-  background:var(--bg2);border:1px solid var(--border-strong);
-  border-radius:999px;padding:10px 18px;
+  left:50%;transform:translateX(-50%) translateY(0);background:var(--bg2);
+  border:1px solid var(--border-strong);border-radius:999px;padding:10px 18px;
   font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink0);
   letter-spacing:0.08em;box-shadow:0 8px 32px rgba(0,0,0,0.4);
   white-space:nowrap;z-index:100;pointer-events:none;transition:all .3s}
 .toast.hidden{opacity:0;transform:translateX(-50%) translateY(8px)}
 .toast.success{border-color:rgba(52,211,153,0.4);color:var(--positive)}
 .toast.error{border-color:rgba(248,113,113,0.4);color:var(--negative)}
-
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .fade-in{animation:fadeIn .3s ease}
@@ -163,45 +127,37 @@ body{background:var(--bg0);color:var(--ink0);font-family:'Space Grotesk',system-
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
   <div class="brand">
     <div class="logo">TS</div>
-    <div class="brand-text">
-      <div class="name">TrueStats AI</div>
-      <div class="sub">OCR Scanner</div>
+    <div>
+      <div class="brand-name">TrueStats AI</div>
+      <div class="brand-sub">OCR Scanner</div>
     </div>
   </div>
   <a href="/" class="back-btn">‹ App</a>
 </div>
 
 <div class="content">
-
   <!-- Step 1: Upload -->
   <div id="stepUpload">
-    <span class="section-title">Paso 1 · Seleccionar imagen</span>
+    <span class="section-label">Paso 1 · Imagen del boleto</span>
     <div class="upload-zone" id="uploadZone">
       <input type="file" id="fileInput" accept="image/*" capture="environment"/>
       <div class="upload-icon">📸</div>
       <div class="upload-title">Toca para subir captura</div>
       <div class="upload-sub">Bet365 · Winamax · JPG / PNG</div>
     </div>
-    <div class="preview-wrap" id="previewWrap" style="display:none">
+    <div class="preview-wrap" id="previewWrap">
       <img id="previewImg" src="" alt="Preview"/>
       <button class="preview-clear" onclick="clearImage()">✕</button>
     </div>
 
-    <!-- Tipster selector -->
-    <div style="margin-top:14px">
-      <span class="section-title">Paso 2 · Tipster</span>
-      <select id="tipsterSelect" style="width:100%;height:44px;background:var(--bg2);
-        border:1px solid var(--border-strong);border-radius:8px;color:var(--ink0);
-        padding:0 12px;font-size:13px;font-family:'Space Grotesk',sans-serif;outline:none">
-        <option value="">Cargando tipsters…</option>
-      </select>
-    </div>
+    <span class="section-label" style="display:block;margin-top:16px">Paso 2 · Tipster</span>
+    <select id="tipsterSelect" onchange="updateScanBtn()">
+      <option value="">Cargando tipsters…</option>
+    </select>
 
-    <!-- Progress -->
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-label">
         <div class="spinner"></div>
@@ -217,72 +173,56 @@ body{background:var(--bg0);color:var(--ink0);font-family:'Space Grotesk',system-
     </button>
   </div>
 
-  <!-- Step 2: Review -->
+  <!-- Step 3: Review -->
   <div class="result-section" id="resultSection">
-    <div class="result-header">
-      <span class="section-title" style="margin:0">Paso 3 · Revisar y confirmar</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span class="section-label" style="margin:0">Paso 3 · Revisar y confirmar</span>
       <div class="result-badge" id="appBadge">—</div>
     </div>
 
-    <!-- Campos editables -->
     <div class="card">
-      <div class="card-body" style="display:flex;flex-direction:column;gap:0">
-
+      <div class="card-body">
         <div class="field-row">
           <span class="field-label">Casa de apuestas</span>
-          <div class="field-value editable" id="fCasa" contenteditable="true"></div>
+          <div class="field-value" id="fCasa" contenteditable="true"></div>
         </div>
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="field-row">
             <span class="field-label">Tipo</span>
-            <div class="field-value editable mono" id="fTipo" contenteditable="true"></div>
+            <div class="field-value field-mono" id="fTipo" contenteditable="true"></div>
           </div>
           <div class="field-row">
             <span class="field-label">Cuota total</span>
-            <div class="field-value editable accent" id="fCuota" contenteditable="true"></div>
+            <div class="field-value field-accent" id="fCuota" contenteditable="true"></div>
           </div>
         </div>
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="field-row">
             <span class="field-label">Deporte</span>
-            <div class="field-value editable mono" id="fDeporte" contenteditable="true"></div>
+            <div class="field-value field-mono" id="fDeporte" contenteditable="true"></div>
           </div>
           <div class="field-row">
             <span class="field-label">Stake</span>
-            <div class="field-value editable mono" id="fStake" contenteditable="true"></div>
+            <div class="field-value field-mono" id="fStake" contenteditable="true"></div>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- Eventos -->
-    <span class="section-title" style="display:block;margin-top:16px">Eventos detectados</span>
+    <span class="section-label" style="display:block;margin-top:16px">Eventos detectados</span>
     <div id="eventosWrap"></div>
 
-    <!-- Raw text toggle -->
     <button class="raw-toggle" onclick="toggleRaw()">
       <span id="rawArrow">▶</span> Ver texto OCR original
     </button>
     <div class="raw-text" id="rawText"></div>
 
-    <!-- Actions -->
-    <button class="btn-success" onclick="confirmarBoleto()">
-      ✓ CONFIRMAR Y GUARDAR
-    </button>
-    <button class="btn-ghost" onclick="resetScanner()">
-      Escanear otro boleto
-    </button>
-    <button class="btn-danger" onclick="rechazarBoleto()">
-      ✕ Descartar
-    </button>
+    <button class="btn-success" onclick="confirmarBoleto()">✓ CONFIRMAR Y GUARDAR</button>
+    <button class="btn-ghost" onclick="resetScanner()">Escanear otro boleto</button>
+    <button class="btn-danger" onclick="rechazarBoleto()">✕ Descartar</button>
   </div>
-
 </div>
 
-<!-- Toast -->
 <div class="toast hidden" id="toast"></div>
 
 <script>
@@ -293,35 +233,30 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let currentFile   = null;
 let currentImgB64 = null;
 let parsedData    = null;
 let importId      = null;
 
-// ── Init: cargar tipsters ─────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 async function loadTipsters() {
   const { data, error } = await sb
     .from('tipsters_profiles')
     .select('id, display_name, username')
     .order('display_name');
-
   const sel = document.getElementById('tipsterSelect');
   if (error || !data?.length) {
-    sel.innerHTML = '<option value="">Sin tipsters — añade uno primero</option>';
+    sel.innerHTML = '<option value="">Sin tipsters registrados</option>';
     return;
   }
   sel.innerHTML = '<option value="">Selecciona tipster…</option>' +
     data.map(t => `<option value="${t.id}">${t.display_name || t.username}</option>`).join('');
 }
 
-// ── File handling ─────────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) return;
-  currentFile = file;
-
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = ev => {
     const result = ev.target.result;
     currentImgB64 = result.split(',')[1];
     document.getElementById('previewImg').src = result;
@@ -331,16 +266,12 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
   reader.readAsDataURL(file);
 });
 
-document.getElementById('tipsterSelect').addEventListener('change', updateScanBtn);
-
 function updateScanBtn() {
-  const hasFile    = !!currentImgB64;
-  const hasTipster = !!document.getElementById('tipsterSelect').value;
-  document.getElementById('scanBtn').disabled = !(hasFile && hasTipster);
+  document.getElementById('scanBtn').disabled =
+    !currentImgB64 || !document.getElementById('tipsterSelect').value;
 }
 
 function clearImage() {
-  currentFile = null;
   currentImgB64 = null;
   document.getElementById('previewWrap').style.display = 'none';
   document.getElementById('previewImg').src = '';
@@ -348,8 +279,8 @@ function clearImage() {
   updateScanBtn();
 }
 
-// ── Google Vision OCR ─────────────────────────────────────────────────────────
-async function callVisionAPI(imageB64) {
+// ── Google Vision ─────────────────────────────────────────────────────────────
+async function callVisionAPI(b64) {
   const res = await fetch(
     `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
     {
@@ -357,7 +288,7 @@ async function callVisionAPI(imageB64) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         requests: [{
-          image: { content: imageB64 },
+          image: { content: b64 },
           features: [{ type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }],
         }],
       }),
@@ -370,158 +301,138 @@ async function callVisionAPI(imageB64) {
   return text.trim();
 }
 
-// ── Parser JS (Bet365 + Winamax) ──────────────────────────────────────────────
-function parseOCRText(text) {
+// ── Normalizar texto OCR ──────────────────────────────────────────────────────
+// Google Vision a veces devuelve todo en una línea — insertamos saltos
+function normalizarTexto(text) {
+  return text
+    .replace(/(Reutilizar selecciones|Compartir)/gi, '\n$1\n')
+    .replace(/(CREAR APUESTA|Crear apuesta)/gi, '\nCREAR APUESTA')
+    .replace(/(MYMATCH)/gi, '\nMYMATCH')
+    .replace(/(Cuota total)/gi, '\nCuota total')
+    .replace(/(Resultado final[:\s])/gi, '\nResultado final: ')
+    .replace(/(Encuentro\s+-\s+)/gi, '\nEncuentro - ')
+    .replace(/(Total de goles|Número total de goles)/gi, '\n$1')
+    .replace(/(Ambos equipos)/gi, '\n$1')
+    .replace(/(Doble oportunidad)/gi, '\n$1')
+    .replace(/([A-ZÁÉÍÓÚÑ][a-záéíóúñA-Z\s\(\)]{3,35})\s+(Dom|Lun|Mar|Mié|Jue|Vie|Sáb)\s+(\d+)/g, '\n$1\n$2 $3')
+    .replace(/(\d{2}:\d{2})/g, '$1\n')
+    .replace(/(• )/g, '\n• ')
+    .split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+}
+
+// ── Parser principal ──────────────────────────────────────────────────────────
+function parseOCRText(rawText) {
+  const text  = normalizarTexto(rawText);
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
   // Detectar app
   const isBet365  = lines.some(l => /reutilizar selecciones|crear apuesta/i.test(l));
-  const isWinamax = lines.some(l => /mymatch|cuota total/i.test(l)) ||
-                    lines.some(l => /\d,\d{2}$/.test(l));
+  const isWinamax = lines.some(l => /mymatch/i.test(l)) ||
+                    lines.some(l => /cuota total/i.test(l)) ||
+                    lines.some(l => /\d,\d{2}/.test(l));
   const casa = isBet365 ? 'Bet365' : isWinamax ? 'Winamax' : 'Desconocida';
 
-  // Normalizar cuotas (coma → punto)
-  const normCuota = s => parseFloat((s || '').replace(',', '.')) || null;
+  const normCuota = s => {
+    const n = parseFloat((s || '').toString().replace(',', '.'));
+    return (n > 1.01 && n < 100) ? Math.round(n * 100) / 100 : null;
+  };
 
-  // Cuota total
+  // Cuota total Winamax
   let cuotaTotal = null;
-  const cuotaTotalLine = lines.find(l => /cuota total/i.test(l));
-  if (cuotaTotalLine) {
-    const m = cuotaTotalLine.match(/[\d,\.]+$/);
-    if (m) cuotaTotal = normCuota(m[0]);
+  const ctLine = lines.find(l => /cuota total/i.test(l));
+  if (ctLine) {
+    const m = ctLine.match(/([\d,\.]+)\s*$/);
+    if (m) cuotaTotal = normCuota(m[1]);
   }
 
-  // Detectar estado
+  // Estado
   let estado = 'pendiente';
   if (lines.some(l => /en curso/i.test(l))) estado = 'en_curso';
   if (lines.some(l => /\bganado\b/i.test(l))) estado = 'ganado';
   if (lines.some(l => /\bperdido\b/i.test(l))) estado = 'perdido';
 
-  // Tipo apuesta
-  const tipo = lines.some(l => /combinada/i.test(l) || /mymatch/i.test(l)) ||
-               text.match(/\n.*\d+\.\d+.*\n.*\d+\.\d+/s)
-               ? 'combinada' : 'simple';
-
-  // Inferir deporte
+  // Deporte
   const deporteMap = [
-    { re:/béisbol|mlb|baseball/i, v:'Béisbol' },
-    { re:/tenis|atp|wta/i,        v:'Tenis'   },
-    { re:/nba|basket/i,           v:'Baloncesto' },
-    { re:/ufc|mma/i,              v:'UFC/MMA' },
-    { re:/fútbol|football|premier|laliga|serie a|bundesliga|segunda|allsvenskan|veikkausliiga|league of ireland/i, v:'Fútbol' },
+    { re:/béisbol|mlb|baseball/i,        v:'Béisbol' },
+    { re:/tenis|atp|wta/i,               v:'Tenis' },
+    { re:/nba|basket/i,                  v:'Baloncesto' },
+    { re:/ufc|mma/i,                     v:'UFC/MMA' },
+    { re:/\(F\)/,                        v:'Fútbol Femenino' },
+    { re:/fútbol|premier|laliga|bundesliga|segunda|allsvenskan|veikkausliiga/i, v:'Fútbol' },
   ];
-  let deporte = 'Fútbol'; // default
+  let deporte = 'Fútbol';
   for (const { re, v } of deporteMap) {
-    if (re.test(text)) { deporte = v; break; }
+    if (re.test(rawText)) { deporte = v; break; }
   }
 
   // Parsear eventos
   const eventos = isBet365
-    ? parseBet365Events(lines, normCuota)
-    : parseWinamaxEvents(lines, normCuota);
+    ? parseBet365(lines, normCuota)
+    : parseWinamax(lines, normCuota);
 
-  // Si no hay cuota total, calcularla
+  // Calcular cuota total si falta
   if (!cuotaTotal && eventos.length > 0) {
-    const product = eventos.reduce((acc, ev) => acc * (ev.cuota_partido || 1), 1);
-    // Detectar boost Bet365
-    const boostLine = lines.find(l => /\+[\d.]+%.*combinadas/i.test(l));
-    const boost = boostLine ? (1 + parseFloat(boostLine.match(/\+([\d.]+)%/)?.[1] || 0) / 100) : 1;
-    cuotaTotal = Math.round(product * boost * 100) / 100;
+    const prod = eventos.reduce((a, e) => a * (e.cuota_partido || 1), 1);
+    const boostLine = lines.find(l => /\+([\d.]+)%.*combinadas/i.test(l));
+    const boost = boostLine
+      ? 1 + parseFloat(boostLine.match(/\+([\d.]+)%/)[1]) / 100
+      : 1;
+    cuotaTotal = Math.round(prod * boost * 100) / 100;
   }
 
   return {
     casa_apuestas: casa,
-    tipo_apuesta:  tipo,
+    tipo_apuesta:  eventos.length > 1 ? 'combinada' : 'simple',
     cuota_total:   cuotaTotal,
     stake:         null,
     deporte,
     estado,
     eventos,
-    texto_raw: text,
+    texto_raw:     rawText,
   };
 }
 
-// Bet365: selección aparece ANTES del partido
-function parseBet365Events(lines, normCuota) {
+// ── Parser Bet365 ─────────────────────────────────────────────────────────────
+function parseBet365(lines, normCuota) {
   const eventos = [];
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
 
-    // Detectar selección con cuota: "○ Sí 1.53" o "○ CREAR APUESTA 1.36"
-    const selMatch = line.match(/^[○•·]\s*(.+?)\s+([\d,\.]{3,})$/);
-    if (selMatch) {
-      const selTexto = selMatch[1].trim();
-      const cuota    = normCuota(selMatch[2]);
-      const sels     = [{ linea: normalizarMercado(selTexto), cuota }];
-
-      // Si es CREAR APUESTA, recoger sub-selecciones
-      if (/crear apuesta/i.test(selTexto)) {
-        i++;
-        while (i < lines.length && !isEquipoLine(lines, i)) {
-          const subMatch = lines[i].match(/^[○•·]\s*(.+)$/);
-          if (subMatch && !/crear apuesta/i.test(subMatch[1])) {
-            sels.push({ linea: normalizarMercado(subMatch[1]), cuota: null });
-          }
-          i++;
-        }
-      } else {
-        i++; // saltar línea de mercado (descripción)
-      }
-
-      // Leer partido (equipo local + visitante)
-      const { partido, cuota_partido, idx } = leerPartido(lines, i, cuota);
-      if (partido) {
-        eventos.push({ ...partido, cuota_partido, selecciones: sels });
-        i = idx;
-        continue;
-      }
-    }
-    i++;
-  }
-  return eventos;
-}
-
-// Winamax: MYMATCH + selecciones simples
-function parseWinamaxEvents(lines, normCuota) {
-  const eventos = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // MYMATCH
-    if (/mymatch/i.test(line)) {
-      const cuotaM = normCuota(line.match(/([\d,\.]{3,})$/)?.[1]);
-      const sels   = [];
+    // CREAR APUESTA con cuota de grupo
+    if (/crear apuesta/i.test(line)) {
+      const cuotaGrupo = normCuota(line.match(/([\d\.]+)\s*$/)?.[1]);
+      const sels = [];
       i++;
-      while (i < lines.length && lines[i].startsWith('•')) {
-        sels.push({ linea: normalizarMercado(lines[i].replace(/^•\s*/, '')), cuota: null });
+      while (i < lines.length && !esEquipo(lines[i])) {
+        const l = lines[i];
+        if (!esLineaHeader(l) && !esEtiquetaMercado(l) && l.length > 3) {
+          const linea = normalizarMercado(l);
+          if (linea) sels.push({ linea, cuota: null });
+        }
         i++;
       }
-      const { partido, idx } = leerPartidoWinamax(lines, i);
-      if (partido) {
-        eventos.push({ ...partido, cuota_partido: cuotaM, selecciones: sels });
-        i = idx;
+      const res = leerDosEquipos(lines, i);
+      if (res) {
+        eventos.push({ ...res.partido, cuota_partido: cuotaGrupo, selecciones: sels });
+        i = res.next;
         continue;
       }
     }
 
-    // Selección simple Winamax: "Ambos equipos marcan Sí  1,56"
-    const simpleMatch = line.match(/^(.+?)\s+([\d,\.]{3,})$/);
-    if (simpleMatch && !isHeaderLine(line)) {
-      const cuota = normCuota(simpleMatch[2]);
-      if (cuota && cuota > 1.01 && cuota < 50) {
+    // Selección estándar: "○ Sí 1.53" o "○ Vikingur Reykjavik 1.25"
+    const m = line.match(/^[○•·]?\s*(.+?)\s+([\d\.]{3,7})\s*$/);
+    if (m && !esLineaHeader(line)) {
+      const cuota = normCuota(m[2]);
+      if (cuota) {
+        const sels = [{ linea: normalizarMercado(m[1]) || m[1], cuota }];
         i++;
-        const { partido, idx } = leerPartidoWinamax(lines, i);
-        if (partido) {
-          eventos.push({
-            ...partido,
-            cuota_partido: cuota,
-            selecciones: [{ linea: normalizarMercado(simpleMatch[1]), cuota }],
-          });
-          i = idx;
+        if (i < lines.length && esEtiquetaMercado(lines[i])) i++;
+        const res = leerDosEquipos(lines, i);
+        if (res) {
+          eventos.push({ ...res.partido, cuota_partido: cuota, selecciones: sels });
+          i = res.next;
           continue;
         }
       }
@@ -531,96 +442,155 @@ function parseWinamaxEvents(lines, normCuota) {
   return eventos;
 }
 
-function leerPartido(lines, start, cuota) {
-  // Busca 2 líneas de equipos con fecha opcional
-  for (let i = start; i < Math.min(start + 4, lines.length); i++) {
-    const l1 = lines[i];
-    const l2 = lines[i + 1];
-    if (!l1 || !l2) continue;
-    const eq1 = l1.replace(/\s*(lun|mar|mié|jue|vie|sáb|dom)\s+\d+.*$/i, '').trim();
-    const eq2 = l2.replace(/\s*(lun|mar|mié|jue|vie|sáb|dom)\s+\d+.*$/i, '').replace(/\s*\d{2}:\d{2}.*$/, '').trim();
-    const hora = l2.match(/(\d{2}:\d{2})/)?.[1] || null;
-    if (eq1.length > 2 && eq2.length > 2 && eq1.length < 40 && eq2.length < 40) {
+// ── Parser Winamax ────────────────────────────────────────────────────────────
+function parseWinamax(lines, normCuota) {
+  const eventos = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // MYMATCH
+    if (/mymatch/i.test(line)) {
+      const cuota = normCuota(line.match(/([\d,\.]+)\s*$/)?.[1]);
+      const sels  = [];
+      i++;
+      while (i < lines.length && lines[i].startsWith('•')) {
+        sels.push({ linea: normalizarMercado(lines[i].replace(/^•\s*/, '')) || lines[i], cuota: null });
+        i++;
+      }
+      const res = leerPartidoWinamax(lines, i);
+      if (res) {
+        eventos.push({ ...res.partido, cuota_partido: cuota, selecciones: sels });
+        i = res.next;
+        continue;
+      }
+    }
+
+    // Selección simple
+    const m = line.match(/^(.+?)\s+([\d,\.]{3,7})\s*$/);
+    if (m && !esLineaHeader(line)) {
+      const cuota = normCuota(m[2]);
+      if (cuota) {
+        i++;
+        const res = leerPartidoWinamax(lines, i);
+        if (res) {
+          eventos.push({
+            ...res.partido,
+            cuota_partido: cuota,
+            selecciones: [{ linea: normalizarMercado(m[1]) || m[1], cuota }],
+          });
+          i = res.next;
+          continue;
+        }
+      }
+    }
+    i++;
+  }
+  return eventos;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function leerDosEquipos(lines, start) {
+  for (let i = start; i < Math.min(start + 6, lines.length - 1); i++) {
+    const raw1 = lines[i] || '';
+    const raw2 = lines[i + 1] || '';
+    if (esLineaHeader(raw1) || esLineaHeader(raw2)) continue;
+    if (esEtiquetaMercado(raw1) || esEtiquetaMercado(raw2)) continue;
+    const eq1 = raw1.replace(/\s*(dom|lun|mar|mié|jue|vie|sáb)\s+\d+.*$/i, '')
+                    .replace(/\s*\d{2}:\d{2}.*$/, '').trim();
+    const eq2 = raw2.replace(/\s*(dom|lun|mar|mié|jue|vie|sáb)\s+\d+.*$/i, '')
+                    .replace(/\s*\d{2}:\d{2}.*$/, '').trim();
+    const hora  = (raw1 + ' ' + raw2).match(/(\d{2}:\d{2})/)?.[1] || null;
+    const fecha = inferirFecha(raw1 + ' ' + raw2);
+    if (eq1.length >= 3 && eq1.length <= 45 && eq2.length >= 3 && eq2.length <= 45 &&
+        !/^[\d\.,]+$/.test(eq1) && !/^[\d\.,]+$/.test(eq2)) {
       return {
-        partido: { partido:`${eq1} vs ${eq2}`, equipo_local:eq1, equipo_visitante:eq2, horario:hora, fecha_evento:inferirFecha(l1) },
-        cuota_partido: cuota,
-        idx: i + 2,
+        partido: { partido:`${eq1} vs ${eq2}`, equipo_local:eq1, equipo_visitante:eq2, horario:hora, fecha_evento:fecha },
+        next: i + 2,
       };
     }
   }
-  return { partido: null, cuota_partido: null, idx: start };
+  return null;
 }
 
 function leerPartidoWinamax(lines, start) {
-  for (let i = start; i < Math.min(start + 3, lines.length); i++) {
+  for (let i = start; i < Math.min(start + 4, lines.length); i++) {
     const l = lines[i];
-    const m = l.match(/^(.+?)\s+-\s+(.+?)\s+(?:hoy|\d{2}:\d{2}|lun|mar)/i);
+    const m = l.match(/^(.+?)\s*-\s*(.+?)\s+(hoy|\d{2}:\d{2}|dom|lun|mar|mié|jue|vie|sáb)/i);
     if (m) {
-      const hora = l.match(/(\d{2}:\d{2})/)?.[1] || null;
       return {
-        partido: { partido:`${m[1].trim()} vs ${m[2].trim()}`, equipo_local:m[1].trim(), equipo_visitante:m[2].trim(), horario:hora, fecha_evento:inferirFecha(l) },
-        idx: i + 1,
+        partido: {
+          partido: `${m[1].trim()} vs ${m[2].trim()}`,
+          equipo_local: m[1].trim(), equipo_visitante: m[2].trim(),
+          horario: l.match(/(\d{2}:\d{2})/)?.[1] || null,
+          fecha_evento: inferirFecha(l),
+        },
+        next: i + 1,
       };
     }
   }
-  return { partido: null, idx: start };
+  return null;
 }
 
-function isEquipoLine(lines, i) {
-  const l = lines[i] || '';
-  return l.length > 2 && l.length < 40 && !/^[○•·]/.test(l) && !/^\+/.test(l);
+function esEquipo(l) {
+  return l && !esLineaHeader(l) && !esEtiquetaMercado(l) &&
+    !/^[\d\.,]+$/.test(l) && l.length >= 3 && l.length <= 45;
 }
 
-function isHeaderLine(l) {
-  return /reutilizar|compartir|mymatch|crear apuesta|cuota total|en curso|simple|combinada/i.test(l);
+function esLineaHeader(l) {
+  return /reutilizar|compartir|crear apuesta|mymatch|cuota total|en curso|simple|combinada/i.test(l);
 }
 
-function inferirFecha(line) {
+function esEtiquetaMercado(l) {
+  return /^(total de goles|resultado final$|ambos equipos$|número total|doble oportunidad|encuentro -)/i.test(l);
+}
+
+function inferirFecha(str) {
+  if (!str) return null;
   const today = new Date();
-  if (/hoy/i.test(line)) return today.toISOString().split('T')[0];
-  const m = line.match(/(lun|mar|mié|jue|vie|sáb|dom)\s+(\d+)\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)/i);
+  if (/hoy/i.test(str)) return today.toISOString().split('T')[0];
+  const meses = {ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
+  const m = str.match(/(dom|lun|mar|mié|jue|vie|sáb)\s+(\d+)\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)/i);
   if (m) {
-    const meses = {ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
-    const d = new Date(today.getFullYear(), meses[m[3].toLowerCase()], parseInt(m[2]));
-    return d.toISOString().split('T')[0];
+    const mes = meses[m[3].toLowerCase()];
+    if (mes !== undefined)
+      return new Date(today.getFullYear(), mes, parseInt(m[2])).toISOString().split('T')[0];
   }
   return null;
 }
 
 function normalizarMercado(s) {
-  if (!s) return s;
+  if (!s) return null;
   s = s.replace(/^[○•·]\s*/, '').trim();
+  if (!s || s.length < 3) return null;
+  if (/^(total de goles|resultado final$|ambos equipos$)/i.test(s)) return null;
   if (/ambos.*anotar|ambos.*marcan/i.test(s)) return 'Ambos marcan - Sí';
-  if (/menos de ([\d,\.]+)/i.test(s)) return `Under ${s.match(/menos de ([\d,\.]+)/i)[1]}`;
-  if (/más de ([\d,\.]+)|encuentro.*más/i.test(s)) {
-    const m = s.match(/[\d,\.]+/);
-    return m ? `Over ${m[0]}` : s;
-  }
-  if (/resultado final[:\s]+(.+)/i.test(s)) return `1X2 - ${s.match(/resultado final[:\s]+(.+)/i)[1].trim()}`;
-  if (/resultado\s+(\w+)/i.test(s) && !/final/i.test(s)) return `1X2 - ${s.match(/resultado\s+(\w+)/i)[1]}`;
-  if (/doble oportunidad\s+(.+)\s+o\s+empate/i.test(s)) return `DC - ${s.match(/doble oportunidad\s+(.+?)\s+o\s+empate/i)[1]}/X`;
+  const underM = s.match(/menos de\s+([\d,\.]+)/i);
+  if (underM) return `Under ${underM[1].replace(',','.')}`;
+  const overM = s.match(/(?:más de|encuentro.*más de)\s+([\d,\.]+)/i);
+  if (overM) return `Over ${overM[1].replace(',','.')}`;
+  const rfM = s.match(/resultado final[:\s]+(.+)/i);
+  if (rfM) return `1X2 - ${rfM[1].trim()}`;
+  const rM = s.match(/^resultado\s+(.+)$/i);
+  if (rM && !/final/i.test(s)) return `1X2 - ${rM[1].trim()}`;
+  const dcM = s.match(/doble oportunidad\s+(.+?)\s+o\s+empate/i);
+  if (dcM) return `DC - ${dcM[1]}/X`;
   return s;
 }
 
 // ── Scan ──────────────────────────────────────────────────────────────────────
 async function scanImage() {
   if (!currentImgB64) return;
-
-  const scanBtn = document.getElementById('scanBtn');
-  scanBtn.disabled = true;
-
+  document.getElementById('scanBtn').disabled = true;
   showProgress(true, 'Enviando a Google Vision…', 30);
 
   try {
-    // 1. OCR
     const textoRaw = await callVisionAPI(currentImgB64);
-    showProgress(true, 'Parseando texto…', 65);
-
-    // 2. Parser JS
+    showProgress(true, 'Parseando boleto…', 65);
     parsedData = parseOCRText(textoRaw);
-    showProgress(true, 'Guardando en Supabase…', 85);
+    showProgress(true, 'Guardando borrador…', 85);
 
-    // 3. Guardar en ocr_imports
     const tipsterId = document.getElementById('tipsterSelect').value;
     const { data, error } = await sb.from('ocr_imports').insert({
       tipster_id:      tipsterId,
@@ -635,65 +605,59 @@ async function scanImage() {
 
     showProgress(false);
     renderResult(parsedData);
-    showToast('✓ Boleto escaneado — revisa y confirma', 'success');
-
+    showToast('✓ Boleto escaneado', 'success');
   } catch(err) {
     showProgress(false);
     showToast(`✗ ${err.message}`, 'error');
-    scanBtn.disabled = false;
+    document.getElementById('scanBtn').disabled = false;
   }
 }
 
-// ── Render resultado ──────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────
 function renderResult(d) {
   document.getElementById('stepUpload').style.opacity = '.4';
-  document.getElementById('resultSection').classList.add('visible','fade-in');
+  const rs = document.getElementById('resultSection');
+  rs.classList.add('visible','fade-in');
 
-  // Badge app
   const badge = document.getElementById('appBadge');
-  const casa = (d.casa_apuestas||'').toLowerCase();
+  const casa  = (d.casa_apuestas || '').toLowerCase();
   badge.textContent = d.casa_apuestas || '?';
-  badge.className = 'result-badge ' +
+  badge.className   = 'result-badge ' +
     (casa.includes('bet365') ? 'badge-bet365' :
      casa.includes('winamax') ? 'badge-winamax' : 'badge-unknown');
 
-  // Campos
-  document.getElementById('fCasa').textContent   = d.casa_apuestas || '';
-  document.getElementById('fTipo').textContent   = d.tipo_apuesta  || '';
-  document.getElementById('fCuota').textContent  = d.cuota_total   || '';
-  document.getElementById('fDeporte').textContent= d.deporte       || '';
-  document.getElementById('fStake').textContent  = d.stake         || '';
+  document.getElementById('fCasa').textContent    = d.casa_apuestas || '';
+  document.getElementById('fTipo').textContent    = d.tipo_apuesta  || '';
+  document.getElementById('fCuota').textContent   = d.cuota_total   || '';
+  document.getElementById('fDeporte').textContent = d.deporte       || '';
+  document.getElementById('fStake').textContent   = d.stake         || '';
 
-  // Eventos
   const wrap = document.getElementById('eventosWrap');
   if (!d.eventos?.length) {
-    wrap.innerHTML = '<div style="color:var(--ink2);font-size:12px;padding:8px 0">No se detectaron eventos</div>';
+    wrap.innerHTML = '<div style="color:var(--ink2);font-size:12px;padding:8px 0">No se detectaron eventos — revisa el texto OCR</div>';
   } else {
-    wrap.innerHTML = d.eventos.map((ev,i) => `
+    wrap.innerHTML = d.eventos.map(ev => `
       <div class="evento-card">
         <div class="evento-title">${ev.partido || '?'}</div>
         <div class="evento-meta">
-          ${ev.horario||''} ${ev.fecha_evento?'· '+ev.fecha_evento:''} · cuota: ${ev.cuota_partido||'—'}
+          ${ev.horario ? ev.horario + ' · ' : ''}${ev.fecha_evento || ''} · cuota: ${ev.cuota_partido ?? '—'}
         </div>
-        ${(ev.selecciones||[]).map(s => `
+        ${(ev.selecciones || []).map(s => `
           <div class="sel-row">
-            <span>${s.linea||'—'}</span>
-            <span class="sel-cuota">${s.cuota||'—'}</span>
+            <span>${s.linea || '—'}</span>
+            <span class="sel-cuota">${s.cuota ?? '—'}</span>
           </div>`).join('')}
       </div>`).join('');
   }
 
-  // Raw text
   document.getElementById('rawText').textContent = d.texto_raw || '';
-
-  window.scrollTo({ top: document.getElementById('resultSection').offsetTop - 20, behavior:'smooth' });
+  window.scrollTo({ top: rs.offsetTop - 20, behavior: 'smooth' });
 }
 
-// ── Confirmar → insertar en boletos ──────────────────────────────────────────
+// ── Confirmar ─────────────────────────────────────────────────────────────────
 async function confirmarBoleto() {
   if (!parsedData || !importId) return;
 
-  // Leer valores editados por el usuario
   const boleto = {
     tipster_id:   document.getElementById('tipsterSelect').value,
     casa_apuestas:document.getElementById('fCasa').textContent.trim(),
@@ -704,55 +668,51 @@ async function confirmarBoleto() {
     estado:       parsedData.estado || 'pendiente',
     tipo_acceso:  'gratis',
     fuente:       'ocr',
+    deporte:      parsedData.deporte || null,
   };
 
   try {
-    // Insertar boleto
-    const { data: boletoData, error: bErr } = await sb
+    const { data: bd, error: bErr } = await sb
       .from('boletos').insert(boleto).select('id').single();
     if (bErr) throw new Error(`Boleto: ${bErr.message}`);
 
-    // Insertar eventos + selecciones
     for (const ev of parsedData.eventos || []) {
-      const { data: evData, error: evErr } = await sb.from('eventos').insert({
-        boleto_id:    boletoData.id,
-        partido:      ev.partido,
-        cuota_partido:ev.cuota_partido,
-        horario:      ev.horario,
+      const { data: ed, error: eErr } = await sb.from('eventos').insert({
+        boleto_id:        bd.id,
+        partido:          ev.partido,
+        cuota_partido:    ev.cuota_partido,
+        horario:          ev.horario,
+        equipo_local:     ev.equipo_local,
+        equipo_visitante: ev.equipo_visitante,
+        fecha_evento:     ev.fecha_evento,
       }).select('id').single();
 
-      if (!evErr && ev.selecciones?.length) {
+      if (!eErr && ev.selecciones?.length) {
         await sb.from('selecciones').insert(
-          ev.selecciones.map(s => ({ evento_id: evData.id, linea: s.linea, cuota: s.cuota }))
+          ev.selecciones.map(s => ({ evento_id: ed.id, linea: s.linea, cuota: s.cuota }))
         );
       }
     }
 
-    // Marcar ocr_import como confirmado
-    await sb.from('ocr_imports').update({ estado:'confirmado' }).eq('id', importId);
-
-    showToast(`✓ Boleto #${boletoData.id} guardado`, 'success');
+    await sb.from('ocr_imports').update({ estado: 'confirmado' }).eq('id', importId);
+    showToast(`✓ Boleto #${bd.id} guardado`, 'success');
     setTimeout(resetScanner, 1500);
-
   } catch(err) {
     showToast(`✗ ${err.message}`, 'error');
   }
 }
 
 async function rechazarBoleto() {
-  if (importId) {
-    await sb.from('ocr_imports').update({ estado:'rechazado' }).eq('id', importId);
-  }
+  if (importId) await sb.from('ocr_imports').update({ estado: 'rechazado' }).eq('id', importId);
   showToast('Boleto descartado', '');
   resetScanner();
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
 function resetScanner() {
-  parsedData = null;
-  importId   = null;
+  parsedData = null; importId = null;
   clearImage();
-  document.getElementById('stepUpload').style.opacity = '1';
+  document.getElementById('stepUpload').style.opacity  = '1';
   document.getElementById('resultSection').classList.remove('visible');
   document.getElementById('scanBtn').disabled = true;
   document.getElementById('rawText').classList.remove('visible');
@@ -761,21 +721,19 @@ function resetScanner() {
 }
 
 function showProgress(visible, label, pct) {
-  const wrap = document.getElementById('progressWrap');
-  wrap.classList.toggle('visible', visible);
+  document.getElementById('progressWrap').classList.toggle('visible', visible);
   if (label) document.getElementById('progressLabel').textContent = label;
   if (pct !== undefined) document.getElementById('progressFill').style.width = pct + '%';
 }
 
 function toggleRaw() {
-  const el  = document.getElementById('rawText');
-  const arr = document.getElementById('rawArrow');
+  const el = document.getElementById('rawText');
   el.classList.toggle('visible');
-  arr.textContent = el.classList.contains('visible') ? '▼' : '▶';
+  document.getElementById('rawArrow').textContent = el.classList.contains('visible') ? '▼' : '▶';
 }
 
 let toastTimer;
-function showToast(msg, type='') {
+function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = `toast ${type}`;
@@ -783,7 +741,6 @@ function showToast(msg, type='') {
   toastTimer = setTimeout(() => t.classList.add('hidden'), 3000);
 }
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
 loadTipsters();
 </script>
 </body>
