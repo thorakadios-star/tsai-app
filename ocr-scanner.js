@@ -75,7 +75,6 @@ async function procesarImagen(imageBase64) {
   const casa  = detectarCasa(texto);
   return { cuota, casa, texto_raw: texto };
 }
-}
 
 // ── Convertir File a base64 ───────────────────────────────────────────────────
 function fileToBase64(file) {
