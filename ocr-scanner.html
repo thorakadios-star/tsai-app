@@ -301,283 +301,458 @@ async function callVisionAPI(b64) {
   return text.trim();
 }
 
-// ── Normalizar texto OCR ──────────────────────────────────────────────────────
-// Google Vision a veces devuelve todo en una línea — insertamos saltos
-function normalizarTexto(text) {
-  return text
-    .replace(/(Reutilizar selecciones|Compartir)/gi, '\n$1\n')
-    .replace(/(CREAR APUESTA|Crear apuesta)/gi, '\nCREAR APUESTA')
-    .replace(/(MYMATCH)/gi, '\nMYMATCH')
-    .replace(/(Cuota total)/gi, '\nCuota total')
-    .replace(/(Resultado final[:\s])/gi, '\nResultado final: ')
-    .replace(/(Encuentro\s+-\s+)/gi, '\nEncuentro - ')
-    .replace(/(Total de goles|Número total de goles)/gi, '\n$1')
-    .replace(/(Ambos equipos)/gi, '\n$1')
-    .replace(/(Doble oportunidad)/gi, '\n$1')
-    .replace(/([A-ZÁÉÍÓÚÑ][a-záéíóúñA-Z\s\(\)]{3,35})\s+(Dom|Lun|Mar|Mié|Jue|Vie|Sáb)\s+(\d+)/g, '\n$1\n$2 $3')
-    .replace(/(\d{2}:\d{2})/g, '$1\n')
-    .replace(/(• )/g, '\n• ')
-    .split('\n').map(l => l.trim()).filter(Boolean).join('\n');
-}
+const MESES={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
 
-// ── Parser principal ──────────────────────────────────────────────────────────
-function parseOCRText(rawText) {
-  const text  = normalizarTexto(rawText);
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+const normC = s => {
+  const n = parseFloat((s||'').toString().replace(',','.'));
+  return (n>1.01 && n<100) ? Math.round(n*100)/100 : null;
+};
 
-  // Detectar app
-  const isBet365  = lines.some(l => /reutilizar selecciones|crear apuesta/i.test(l));
-  const isWinamax = lines.some(l => /mymatch/i.test(l)) ||
-                    lines.some(l => /cuota total/i.test(l)) ||
-                    lines.some(l => /\d,\d{2}/.test(l));
-  const casa = isBet365 ? 'Bet365' : isWinamax ? 'Winamax' : 'Desconocida';
-
-  const normCuota = s => {
-    const n = parseFloat((s || '').toString().replace(',', '.'));
-    return (n > 1.01 && n < 100) ? Math.round(n * 100) / 100 : null;
-  };
-
-  // Cuota total Winamax
-  let cuotaTotal = null;
-  const ctLine = lines.find(l => /cuota total/i.test(l));
-  if (ctLine) {
-    const m = ctLine.match(/([\d,\.]+)\s*$/);
-    if (m) cuotaTotal = normCuota(m[1]);
-  }
-
-  // Estado
-  let estado = 'pendiente';
-  if (lines.some(l => /en curso/i.test(l))) estado = 'en_curso';
-  if (lines.some(l => /\bganado\b/i.test(l))) estado = 'ganado';
-  if (lines.some(l => /\bperdido\b/i.test(l))) estado = 'perdido';
-
-  // Deporte
-  const deporteMap = [
-    { re:/béisbol|mlb|baseball/i,        v:'Béisbol' },
-    { re:/tenis|atp|wta/i,               v:'Tenis' },
-    { re:/nba|basket/i,                  v:'Baloncesto' },
-    { re:/ufc|mma/i,                     v:'UFC/MMA' },
-    { re:/\(F\)/,                        v:'Fútbol Femenino' },
-    { re:/fútbol|premier|laliga|bundesliga|segunda|allsvenskan|veikkausliiga/i, v:'Fútbol' },
-  ];
-  let deporte = 'Fútbol';
-  for (const { re, v } of deporteMap) {
-    if (re.test(rawText)) { deporte = v; break; }
-  }
-
-  // Parsear eventos
-  const eventos = isBet365
-    ? parseBet365(lines, normCuota)
-    : parseWinamax(lines, normCuota);
-
-  // Calcular cuota total si falta
-  if (!cuotaTotal && eventos.length > 0) {
-    const prod = eventos.reduce((a, e) => a * (e.cuota_partido || 1), 1);
-    const boostLine = lines.find(l => /\+([\d.]+)%.*combinadas/i.test(l));
-    const boost = boostLine
-      ? 1 + parseFloat(boostLine.match(/\+([\d.]+)%/)[1]) / 100
-      : 1;
-    cuotaTotal = Math.round(prod * boost * 100) / 100;
-  }
-
-  return {
-    casa_apuestas: casa,
-    tipo_apuesta:  eventos.length > 1 ? 'combinada' : 'simple',
-    cuota_total:   cuotaTotal,
-    stake:         null,
-    deporte,
-    estado,
-    eventos,
-    texto_raw:     rawText,
-  };
-}
-
-// ── Parser Bet365 ─────────────────────────────────────────────────────────────
-function parseBet365(lines, normCuota) {
-  const eventos = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // CREAR APUESTA con cuota de grupo
-    if (/crear apuesta/i.test(line)) {
-      const cuotaGrupo = normCuota(line.match(/([\d\.]+)\s*$/)?.[1]);
-      const sels = [];
-      i++;
-      while (i < lines.length && !esEquipo(lines[i])) {
-        const l = lines[i];
-        if (!esLineaHeader(l) && !esEtiquetaMercado(l) && l.length > 3) {
-          const linea = normalizarMercado(l);
-          if (linea) sels.push({ linea, cuota: null });
-        }
-        i++;
-      }
-      const res = leerDosEquipos(lines, i);
-      if (res) {
-        eventos.push({ ...res.partido, cuota_partido: cuotaGrupo, selecciones: sels });
-        i = res.next;
-        continue;
-      }
-    }
-
-    // Selección estándar: "○ Sí 1.53" o "○ Vikingur Reykjavik 1.25"
-    const m = line.match(/^[○•·]?\s*(.+?)\s+([\d\.]{3,7})\s*$/);
-    if (m && !esLineaHeader(line)) {
-      const cuota = normCuota(m[2]);
-      if (cuota) {
-        const sels = [{ linea: normalizarMercado(m[1]) || m[1], cuota }];
-        i++;
-        if (i < lines.length && esEtiquetaMercado(lines[i])) i++;
-        const res = leerDosEquipos(lines, i);
-        if (res) {
-          eventos.push({ ...res.partido, cuota_partido: cuota, selecciones: sels });
-          i = res.next;
-          continue;
-        }
-      }
-    }
-    i++;
-  }
-  return eventos;
-}
-
-// ── Parser Winamax ────────────────────────────────────────────────────────────
-function parseWinamax(lines, normCuota) {
-  const eventos = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // MYMATCH
-    if (/mymatch/i.test(line)) {
-      const cuota = normCuota(line.match(/([\d,\.]+)\s*$/)?.[1]);
-      const sels  = [];
-      i++;
-      while (i < lines.length && lines[i].startsWith('•')) {
-        sels.push({ linea: normalizarMercado(lines[i].replace(/^•\s*/, '')) || lines[i], cuota: null });
-        i++;
-      }
-      const res = leerPartidoWinamax(lines, i);
-      if (res) {
-        eventos.push({ ...res.partido, cuota_partido: cuota, selecciones: sels });
-        i = res.next;
-        continue;
-      }
-    }
-
-    // Selección simple
-    const m = line.match(/^(.+?)\s+([\d,\.]{3,7})\s*$/);
-    if (m && !esLineaHeader(line)) {
-      const cuota = normCuota(m[2]);
-      if (cuota) {
-        i++;
-        const res = leerPartidoWinamax(lines, i);
-        if (res) {
-          eventos.push({
-            ...res.partido,
-            cuota_partido: cuota,
-            selecciones: [{ linea: normalizarMercado(m[1]) || m[1], cuota }],
-          });
-          i = res.next;
-          continue;
-        }
-      }
-    }
-    i++;
-  }
-  return eventos;
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function leerDosEquipos(lines, start) {
-  for (let i = start; i < Math.min(start + 6, lines.length - 1); i++) {
-    const raw1 = lines[i] || '';
-    const raw2 = lines[i + 1] || '';
-    if (esLineaHeader(raw1) || esLineaHeader(raw2)) continue;
-    if (esEtiquetaMercado(raw1) || esEtiquetaMercado(raw2)) continue;
-    const eq1 = raw1.replace(/\s*(dom|lun|mar|mié|jue|vie|sáb)\s+\d+.*$/i, '')
-                    .replace(/\s*\d{2}:\d{2}.*$/, '').trim();
-    const eq2 = raw2.replace(/\s*(dom|lun|mar|mié|jue|vie|sáb)\s+\d+.*$/i, '')
-                    .replace(/\s*\d{2}:\d{2}.*$/, '').trim();
-    const hora  = (raw1 + ' ' + raw2).match(/(\d{2}:\d{2})/)?.[1] || null;
-    const fecha = inferirFecha(raw1 + ' ' + raw2);
-    if (eq1.length >= 3 && eq1.length <= 45 && eq2.length >= 3 && eq2.length <= 45 &&
-        !/^[\d\.,]+$/.test(eq1) && !/^[\d\.,]+$/.test(eq2)) {
-      return {
-        partido: { partido:`${eq1} vs ${eq2}`, equipo_local:eq1, equipo_visitante:eq2, horario:hora, fecha_evento:fecha },
-        next: i + 2,
-      };
-    }
-  }
+const inferF = s => {
+  if(!s) return null;
+  if(/hoy/i.test(s)) return new Date().toISOString().split('T')[0];
+  const m = s.match(/(lun|mar|mié|jue|vie|sáb|dom)\s+(\d+)\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)/i);
+  if(m) return new Date(new Date().getFullYear(), MESES[m[3].toLowerCase()], parseInt(m[2])).toISOString().split('T')[0];
   return null;
-}
+};
 
-function leerPartidoWinamax(lines, start) {
-  for (let i = start; i < Math.min(start + 4, lines.length); i++) {
-    const l = lines[i];
-    const m = l.match(/^(.+?)\s*-\s*(.+?)\s+(hoy|\d{2}:\d{2}|dom|lun|mar|mié|jue|vie|sáb)/i);
-    if (m) {
-      return {
-        partido: {
-          partido: `${m[1].trim()} vs ${m[2].trim()}`,
-          equipo_local: m[1].trim(), equipo_visitante: m[2].trim(),
-          horario: l.match(/(\d{2}:\d{2})/)?.[1] || null,
-          fecha_evento: inferirFecha(l),
-        },
-        next: i + 1,
-      };
-    }
-  }
-  return null;
-}
-
-function esEquipo(l) {
-  return l && !esLineaHeader(l) && !esEtiquetaMercado(l) &&
-    !/^[\d\.,]+$/.test(l) && l.length >= 3 && l.length <= 45;
-}
-
-function esLineaHeader(l) {
-  return /reutilizar|compartir|crear apuesta|mymatch|cuota total|en curso|simple|combinada/i.test(l);
-}
-
-function esEtiquetaMercado(l) {
-  return /^(total de goles|resultado final$|ambos equipos$|número total|doble oportunidad|encuentro -)/i.test(l);
-}
-
-function inferirFecha(str) {
-  if (!str) return null;
-  const today = new Date();
-  if (/hoy/i.test(str)) return today.toISOString().split('T')[0];
-  const meses = {ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
-  const m = str.match(/(dom|lun|mar|mié|jue|vie|sáb)\s+(\d+)\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)/i);
-  if (m) {
-    const mes = meses[m[3].toLowerCase()];
-    if (mes !== undefined)
-      return new Date(today.getFullYear(), mes, parseInt(m[2])).toISOString().split('T')[0];
-  }
-  return null;
-}
-
-function normalizarMercado(s) {
-  if (!s) return null;
-  s = s.replace(/^[○•·]\s*/, '').trim();
-  if (!s || s.length < 3) return null;
-  if (/^(total de goles|resultado final$|ambos equipos$)/i.test(s)) return null;
-  if (/ambos.*anotar|ambos.*marcan/i.test(s)) return 'Ambos marcan - Sí';
-  const underM = s.match(/menos de\s+([\d,\.]+)/i);
-  if (underM) return `Under ${underM[1].replace(',','.')}`;
-  const overM = s.match(/(?:más de|encuentro.*más de)\s+([\d,\.]+)/i);
-  if (overM) return `Over ${overM[1].replace(',','.')}`;
-  const rfM = s.match(/resultado final[:\s]+(.+)/i);
-  if (rfM) return `1X2 - ${rfM[1].trim()}`;
-  const rM = s.match(/^resultado\s+(.+)$/i);
-  if (rM && !/final/i.test(s)) return `1X2 - ${rM[1].trim()}`;
-  const dcM = s.match(/doble oportunidad\s+(.+?)\s+o\s+empate/i);
-  if (dcM) return `DC - ${dcM[1]}/X`;
+const normM = s => {
+  if(!s) return null;
+  s = s.replace(/^[○•·]\s*/,'').trim();
+  if(s.length < 3) return null;
+  const o = s.match(/más de\s*([\d,\.]+)/i); if(o) return `Over ${o[1].replace(',','.')}`;
+  const u = s.match(/menos de\s*([\d,\.]+)/i); if(u) return `Under ${u[1].replace(',','.')}`;
+  const rf = s.match(/resultado final[:\s]+(.+)/i); if(rf) return `1X2 - ${rf[1].replace(/resultado final.*/i,'').trim()}`;
+  const dc = s.match(/doble oportunidad\s+(.+?)\s+o\s+empate/i); if(dc) return `DC - ${dc[1]}/X`;
+  const iv = s.match(/intervalo[:\s]*([\d\s\-]+)/i); if(iv) return `Intervalo goles: ${iv[1].trim()}`;
   return s;
+};
+
+// Limpiar ruido de mercados del bloque CREAR APUESTA
+const limpiarBloque = s => s
+  .replace(/Resultado final[:\s]*/gi,' ')
+  .replace(/[^\s]+-\s*Goles\s*-\s*Intervalo[:\s][\d\s\-]+goles?/gi,' ')
+  .replace(/Equipo local\s*-\s*Goles[^\n]*/gi,' ')
+  .replace(/Total de goles/gi,' ')
+  .replace(/\s{2,}/g,' ').trim();
+
+// Extraer selecciones de un bloque CREAR APUESTA
+const seleccionesCrear = bloque => {
+  const sels = [];
+  const rfM = bloque.match(/Resultado final[:\s]+(.{2,40}?)(?=\s+Resultado final|\s+[A-Z][A-Z]|\s+Equipo|\s+Más|\s+Menos|\s*$)/i);
+  if(rfM) {
+    const eq = rfM[1].replace(/-\s*Goles.*/gi,'').trim();
+    if(eq.length > 2) sels.push({linea:`1X2 - ${eq}`, cuota:null});
+  }
+  const overM = bloque.match(/Más de\s+([\d,\.]+)/i); if(overM) sels.push({linea:`Over ${overM[1].replace(',','.')}`, cuota:null});
+  const underM = bloque.match(/Menos de\s+([\d,\.]+)/i); if(underM) sels.push({linea:`Under ${underM[1].replace(',','.')}`, cuota:null});
+  const ivM = bloque.match(/Intervalo[:\s]*([\d\s\-]+)/i); if(ivM) sels.push({linea:`Intervalo goles: ${ivM[1].trim()}`, cuota:null});
+  return sels.filter(s => s.linea && s.linea.length > 3);
+};
+
+// Extraer partido de un bloque CREAR APUESTA (sin fecha — los equipos están dentro del bloque)
+const extraerPartidoCrear = bloque => {
+  // Los equipos están en la forma: "... NombreLocal 1 NombreVisitante" al final
+  // El local se repite varias veces, el visitante solo al final
+  const clean = limpiarBloque(bloque);
+  
+  // Buscar: nombre número nombre al final  
+  const m = clean.match(/(\S.{1,35}?)\s+\d+\s+(\S.{1,35})\s*$/);
+  if(m) {
+    const eq1 = m[1].trim().replace(/^-\s*/,'').trim();
+    const eq2 = m[2].trim();
+    if(eq1.length > 2 && eq2.length > 2) {
+      return {equipo_local: eq1, equipo_visitante: eq2, partido: `${eq1} vs ${eq2}`};
+    }
+  }
+  
+  // Fallback: buscar todos los nombres y tomar el primero (más frecuente=local) y último (visitante)
+  const nombres = clean.match(/[A-Z]\S{1,30}(?:\s+\S{1,20}){0,3}/g) || [];
+  const limpios = nombres.map(n=>n.trim()).filter(n=>n.length>3 && !/^\d/.test(n));
+  if(limpios.length >= 2) {
+    const local = limpios[0];
+    const visitante = limpios[limpios.length-1];
+    if(local !== visitante) return {equipo_local:local, equipo_visitante:visitante, partido:`${local} vs ${visitante}`};
+  }
+  return null;
+};
+
+function parseBet365(raw) {
+  const eventos = [];
+
+  // ── PATRÓN 1: Evento estándar con bullet ──────────────────────────────────
+  // • [Local] [cuota] [Mercado] [Visitante] Compartir [Local_rep] [Fecha] [Hora]
+  const p1 = /•\s*(.{2,40}?)\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s+(.{3,60}?)\s+Compartir\s+(.{2,40}?)\s+(lun|mar|mié|jue|vie|sáb|dom)\s+(\d+)\s+(\w+)\s+(\d{2}:\d{2})/gi;
+  let m;
+  while((m=p1.exec(raw)) !== null) {
+    // m[1]=local, m[2]=cuota, m[3]=mercado+visitante, m[4]=local_rep, m[5..8]=fecha
+    // El visitante está al FINAL de m[3]
+    const cuota    = normC(m[2]);
+    const bloque   = m[3];
+    const local    = m[1].trim();
+    const fecha    = inferF(`${m[5]} ${m[6]} ${m[7]}`);
+    const hora     = m[8];
+
+    // Separar mercado del visitante: el visitante es el último nombre del bloque
+    // Los mercados no terminan en nombre de equipo
+    let mercado = bloque, visitante = null;
+    const mercadoPatrones = [
+      /^(Resultado final)\s+(.+)$/i,
+      /^(Más de[\s\d,\.]+)\s*$/i,
+      /^(Menos de[\s\d,\.]+)\s*$/i,
+      /^(Total de goles)\s*(.*)$/i,
+      /^(Ambos equipos[^\n]{0,30})\s*(.*)$/i,
+    ];
+    let mercadoLinea = null;
+    for(const pat of mercadoPatrones) {
+      const mm = bloque.match(pat);
+      if(mm) {
+        mercadoLinea = mm[1].trim();
+        visitante    = mm[2]?.trim() || null;
+        if(visitante && visitante.length < 3) visitante = null;
+        break;
+      }
+    }
+    if(!mercadoLinea) {
+      // Mercado = todo salvo el último nombre
+      const lastNameM = bloque.match(/^(.*?)\s+([A-Z]\S.{1,35})\s*$/);
+      if(lastNameM) {
+        mercadoLinea = lastNameM[1].trim();
+        visitante    = lastNameM[2].trim();
+      } else {
+        mercadoLinea = bloque.trim();
+      }
+    }
+    if(!visitante || visitante.length < 3) visitante = 'Visitante';
+
+    eventos.push({
+      partido:`${local} vs ${visitante}`,
+      equipo_local:local, equipo_visitante:visitante,
+      horario:hora, fecha_evento:fecha,
+      cuota_partido:cuota,
+      selecciones:[{linea:normM(mercadoLinea)||mercadoLinea, cuota}],
+    });
+  }
+
+  // ── PATRÓN 2: CREAR APUESTA ───────────────────────────────────────────────
+  // Encontrar todos los bloques CREAR APUESTA
+  const crearRe = /CREAR APUESTA\s+([\d\.]+)\s+(.*?)(?=(?:•\s*[A-Z]|CREAR APUESTA|\+[\d\.]+%|$))/gis;
+  while((m=crearRe.exec(raw)) !== null) {
+    const cuota  = normC(m[1]);
+    const bloque = m[2].trim();
+    const sels   = seleccionesCrear(bloque);
+    const p      = extraerPartidoCrear(bloque);
+
+    // Buscar fecha en el texto DESPUÉS del bloque (en el texto completo)
+    const posAfter = crearRe.lastIndex;
+    const after    = raw.slice(m.index, posAfter + 100);
+    const hora     = after.match(/(\d{2}:\d{2})/)?.[1] || null;
+    const fecha    = inferF(after);
+
+    if(p) {
+      eventos.push({
+        partido:p.partido,
+        equipo_local:p.equipo_local, equipo_visitante:p.equipo_visitante,
+        horario:hora, fecha_evento:fecha,
+        cuota_partido:cuota,
+        selecciones:sels.length ? sels : [{linea:'Pick combinado', cuota:null}],
+      });
+    }
+  }
+
+  // ── PATRÓN 3: Eventos SIN 'Compartir' ni bullet (al final del texto) ──────
+  // Ej: "[Más de X] [cuota] Total de goles Equipo1 Equipo2 Fecha Hora"
+  const p3 = /(Más de\s+[\d,\.]+|Menos de\s+[\d,\.]+|Resultado final)\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s+(?:Total de goles|Resultado final)?\s*([A-Z].{2,30})\s+([A-Z].{2,30})\s+(lun|mar|mié|jue|vie|sáb|dom)\s+(\d+)\s+(\w+)\s+(\d{2}:\d{2})/gi;
+  while((m=p3.exec(raw)) !== null) {
+    const partido = `${m[3].trim()} vs ${m[4].trim()}`;
+    if(eventos.some(e => e.partido===partido)) continue;
+    eventos.push({
+      partido,
+      equipo_local:m[3].trim(), equipo_visitante:m[4].trim(),
+      horario:m[8], fecha_evento:inferF(`${m[5]} ${m[6]} ${m[7]}`),
+      cuota_partido:normC(m[2]),
+      selecciones:[{linea:normM(m[1])||m[1], cuota:normC(m[2])}],
+    });
+  }
+
+  return eventos;
 }
+
+// ── Scan ──────────────────────────────────────────────────────────────────────
+async function scanImage() {
+  if (!currentImgB64) return;
+  document.getElementById('scanBtn').disabled = true;
+  showProgress(true, 'Enviando a Google Vision…', 30);
+
+  try {
+    const textoRaw = await callVisionAPI(currentImgB64);
+    showProgress(true, 'Parseando boleto…', 65);
+    parsedData = parseOCRText(textoRaw);
+    showProgress(true, 'Guardando borrador…', 85);
+
+    const tipsterId = document.getElementById('tipsterSelect').value;
+    const { data, error } = await sb.from('ocr_imports').insert({
+      tipster_id:      tipsterId,
+      imagen_url:      `ocr_${Date.now()}`,
+      texto_raw:       textoRaw,
+      picks_extraidos: parsedData,
+      estado:          'pendiente',
+    }).select('id').single();
+
+    if (error) throw new Error(`Supabase: ${error.message}`);
+    importId = data.id;
+
+    showProgress(false);
+    renderResult(parsedData);
+    showToast('✓ Boleto escaneado', 'success');
+  } catch(err) {
+    showProgress(false);
+    showToast(`✗ ${err.message}`, 'error');
+    document.getElementById('scanBtn').disabled = false;
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderResult(d) {
+  document.getElementById('stepUpload').style.opacity = '.4';
+  const rs = document.getElementById('resultSection');
+  rs.classList.add('visible','fade-in');
+
+  const badge = document.getElementById('appBadge');
+  const casa  = (d.casa_apuestas || '').toLowerCase();
+  badge.textContent = d.casa_apuestas || '?';
+  badge.className   = 'result-badge ' +
+    (casa.includes('bet365') ? 'badge-bet365' :
+     casa.includes('winamax') ? 'badge-winamax' : 'badge-unknown');
+
+  document.getElementById('fCasa').textContent    = d.casa_apuestas || '';
+  document.getElementById('fTipo').textContent    = d.tipo_apuesta  || '';
+  document.getElementById('fCuota').textContent   = d.cuota_total   || '';
+  document.getElementById('fDeporte').textContent = d.deporte       || '';
+  document.getElementById('fStake').textContent   = d.stake         || '';
+
+  const wrap = document.getElementById('eventosWrap');
+  if (!d.eventos?.length) {
+    wrap.innerHTML = '<div style="color:var(--ink2);font-size:12px;padding:8px 0">No se detectaron eventos — revisa el texto OCR</div>';
+  } else {
+    wrap.innerHTML = d.eventos.map(ev => `
+      <div class="evento-card">
+        <div class="evento-title">${ev.partido || '?'}</div>
+        <div class="evento-meta">
+          ${ev.horario ? ev.horario + ' · ' : ''}${ev.fecha_evento || ''} · cuota: ${ev.cuota_partido ?? '—'}
+        </div>
+        ${(ev.selecciones || []).map(s => `
+          <div class="sel-row">
+            <span>${s.linea || '—'}</span>
+            <span class="sel-cuota">${s.cuota ?? '—'}</span>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+
+  document.getElementById('rawText').textContent = d.texto_raw || '';
+  window.scrollTo({ top: rs.offsetTop - 20, behavior: 'smooth' });
+}
+
+// ── Confirmar ─────────────────────────────────────────────────────────────────
+async function confirmarBoleto() {
+  if (!parsedData || !importId) return;
+
+  const boleto = {
+    tipster_id:   document.getElementById('tipsterSelect').value,
+    casa_apuestas:document.getElementById('fCasa').textContent.trim(),
+    tipo_apuesta: document.getElementById('fTipo').textContent.trim(),
+    cuota_total:  parseFloat(document.getElementById('fCuota').textContent) || null,
+    stake:        parseFloat(document.getElementById('fStake').textContent) || null,
+    boleto_texto: parsedData.texto_raw?.slice(0, 500) || null,
+    estado:       parsedData.estado || 'pendiente',
+    tipo_acceso:  'gratis',
+    fuente:       'ocr',
+    deporte:      parsedData.deporte || null,
+  };
+
+  try {
+    const { data: bd, error: bErr } = await sb
+      .from('boletos').insert(boleto).select('id').single();
+    if (bErr) throw new Error(`Boleto: ${bErr.message}`);
+
+    for (const ev of parsedData.eventos || []) {
+      const { data: ed, error: eErr } = await sb.from('eventos').insert({
+        boleto_id:        bd.id,
+        partido:          ev.partido,
+        cuota_partido:    ev.cuota_partido,
+        horario:          ev.horario,
+        equipo_local:     ev.equipo_local,
+        equipo_visitante: ev.equipo_visitante,
+        fecha_evento:     ev.fecha_evento,
+      }).select('id').single();
+
+      if (!eErr && ev.selecciones?.length) {
+        await sb.from('selecciones').insert(
+          ev.selecciones.map(s => ({ evento_id: ed.id, linea: s.linea, cuota: s.cuota }))
+        );
+      }
+    }
+
+    await sb.from('ocr_imports').update({ estado: 'confirmado' }).eq('id', importId);
+    showToast(`✓ Boleto #${bd.id} guardado`, 'success');
+    setTimeout(resetScanner, 1500);
+  } catch(err) {
+    showToast(`✗ ${err.message}`, 'error');
+  }
+}
+
+async function rechazarBoleto() {
+  if (importId) await sb.from('ocr_imports').update({ estado: 'rechazado' }).eq('id', importId);
+  showToast('Boleto descartado', '');
+  resetScanner();
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function resetScanner() {
+  parsedData = null; importId = null;
+  clearImage();
+  document.getElementById('stepUpload').style.opacity  = '1';
+  document.getElementById('resultSection').classList.remove('visible');
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('rawText').classList.remove('visible');
+  document.getElementById('rawArrow').textContent = '▶';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showProgress(visible, label, pct) {
+  document.getElementById('progressWrap').classList.toggle('visible', visible);
+  if (label) document.getElementById('progressLabel').textContent = label;
+  if (pct !== undefined) document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function toggleRaw() {
+  const el = document.getElementById('rawText');
+  el.classList.toggle('visible');
+  document.getElementById('rawArrow').textContent = el.classList.contains('visible') ? '▼' : '▶';
+}
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+loadTipsters();
+</script>
+</body>
+</html>// ── Parser OCR — Bet365 + Winamax ───────────────────────────────────────────
+const MESES_MAP={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
+
+const normCuota=s=>{const n=parseFloat((s||'').toString().replace(",","."));return(n>1.01&&n<100)?Math.round(n*100)/100:null;};
+const inferFecha=s=>{if(!s)return null;if(/hoy/i.test(s))return new Date().toISOString().split("T")[0];const m=s.match(/(lun|mar|mie|jue|vie|sab|dom)\s+(\d+)\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)/i);if(m)return new Date(new Date().getFullYear(),MESES_MAP[m[3].toLowerCase()],parseInt(m[2])).toISOString().split("T")[0];return null;};
+const normMercado=s=>{if(!s)return null;s=s.replace(/^[○·]\s*/,"").trim();if(s.length<3)return null;const o=s.match(/más de\s*([\d,.]+)/i);if(o)return "Over "+o[1].replace(",",".");const u=s.match(/menos de\s*([\d,.]+)/i);if(u)return "Under "+u[1].replace(",",".");const rf=s.match(/resultado final[:\s]+(.+)/i);if(rf)return "1X2 - "+rf[1].replace(/resultado final.*/i,"").trim();const dc=s.match(/doble oportunidad\s+(.+?)\s+o\s+empate/i);if(dc)return "DC - "+dc[1]+"/X";return s;};
+
+function detectarApp(raw){if(/reutilizar selecciones|crear apuesta/i.test(raw))return"Bet365";if(/mymatch/i.test(raw)||/cuota total/i.test(raw)||/\d,\d{2}/.test(raw))return"Winamax";return"Desconocida";}
+function detectarDeporte(raw){if(/béisbol|mlb|baseball/i.test(raw))return"Béisbol";if(/tenis|atp|wta/i.test(raw))return"Tenis";if(/nba|basket/i.test(raw))return"Baloncesto";if(/ufc|mma/i.test(raw))return"UFC/MMA";if(/\(F\)/.test(raw))return"Fútbol Femenino";return"Fútbol";}
+
+function seleccionesCrear(bloque){
+  const sels=[];
+  const rfM=bloque.match(/Resultado final[:\s]+(.{2,40}?)(?=\s+Resultado final|\s+[A-Z]{2}[A-Z\s]|\s+Equipo|\s+Más|\s+Menos|\s*$)/i);
+  if(rfM){const eq=rfM[1].replace(/-\s*Goles.*/gi,"").trim();if(eq.length>2)sels.push({linea:"1X2 - "+eq,cuota:null});}
+  const oM=bloque.match(/Más de\s+([\d,.]+)/i);if(oM)sels.push({linea:"Over "+oM[1].replace(",","."),cuota:null});
+  const uM=bloque.match(/Menos de\s+([\d,.]+)/i);if(uM)sels.push({linea:"Under "+uM[1].replace(",","."),cuota:null});
+  const iM=bloque.match(/Intervalo[:\s]*([\d\s\-]+)/i);if(iM)sels.push({linea:"Intervalo goles: "+iM[1].trim(),cuota:null});
+  return sels.filter(s=>s.linea&&s.linea.length>3);
+}
+
+function extraerPartidoCrear(bloque){
+  const clean=bloque.replace(/- Goles - Intervalo[:\s]*[\d\s\-]+goles?/gi," ").replace(/Equipo local - Goles\s*/gi," ").replace(/Resultado final[:\s]*/gi," ").replace(/\s{2,}/g," ").trim();
+  const parts=clean.split(/\s+\d+\s+/);
+  if(parts.length>=2){
+    const local=parts[0].split(/\s{2,}/)[0].trim().replace(/^[-\s]+/,"").trim();
+    const visitante=parts[parts.length-1].trim();
+    if(local.length>2&&visitante.length>2&&local!==visitante)return{equipo_local:local,equipo_visitante:visitante,partido:local+" vs "+visitante};
+  }
+  return null;
+}
+
+function parseBet365(raw){
+  const eventos=[];
+  // PATRÓN 1: • Local cuota Mercado+Visitante Compartir Local_rep Fecha Hora
+  const p1=/•\s*(.{2,40}?)\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s+(.{3,80}?)\s+Compartir\s+.{2,40}?\s+(lun|mar|mié|jue|vie|sáb|dom)\s+(\d+)\s+(\w+)\s+(\d{2}:\d{2})/gi;
+  let m;
+  while((m=p1.exec(raw))!==null){
+    const local=m[1].trim(),cuota=normCuota(m[2]),bloque=m[3],fecha=inferFecha(m[4]+" "+m[5]+" "+m[6]),hora=m[7];
+    let mercadoLinea=bloque,visitante="Visitante";
+    const lastNameM=bloque.match(/^(.+\S)\s+([A-ZÁÉÍÓÚÑ\/].{2,35})\s*$/);
+    if(lastNameM){mercadoLinea=lastNameM[1].trim();visitante=lastNameM[2].trim();}
+    eventos.push({partido:local+" vs "+visitante,equipo_local:local,equipo_visitante:visitante,horario:hora,fecha_evento:fecha,cuota_partido:cuota,selecciones:[{linea:normMercado(mercadoLinea)||mercadoLinea,cuota}]});
+  }
+  // PATRÓN 2: CREAR APUESTA
+  const p2=/CREAR APUESTA\s+([\d.]+)\s+(.*?)(?=(?:•\s*[A-Z]|CREAR APUESTA|\+[\d.]+%|(?:Más de|Menos de)\s+[\d,.]+\s+[\d,.]+|$))/gis;
+  while((m=p2.exec(raw))!==null){
+    const cuota=normCuota(m[1]),bloque=m[2].trim(),sels=seleccionesCrear(bloque),p=extraerPartidoCrear(bloque);
+    const ctx=raw.slice(m.index,m.index+bloque.length+100);
+    const hora=ctx.match(/(\d{2}:\d{2})/)?.[1]||null,fecha=inferFecha(ctx);
+    if(p)eventos.push({partido:p.partido,equipo_local:p.equipo_local,equipo_visitante:p.equipo_visitante,horario:hora,fecha_evento:fecha,cuota_partido:cuota,selecciones:sels.length?sels:[{linea:"Pick combinado",cuota:null}]});
+  }
+  // PATRÓN 3: eventos sin bullet (final del texto)
+  const rawC=raw.replace(/Total de goles/gi," ").replace(/Resultado final[:\s]*/gi," ");
+  const p3=/(Más de\s+[\d,.]+|Menos de\s+[\d,.]+)\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñA-Z\s0-9]{2,20})\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñA-Z\s]{2,20})\s+(lun|mar|mié|jue|vie|sáb|dom)\s+(\d+)\s+(\w+)\s+(\d{2}:\d{2})/gi;
+  while((m=p3.exec(rawC))!==null){
+    const partido=m[3].trim()+" vs "+m[4].trim();
+    if(eventos.some(e=>e.partido===partido))continue;
+    eventos.push({partido,equipo_local:m[3].trim(),equipo_visitante:m[4].trim(),horario:m[8],fecha_evento:inferFecha(m[5]+" "+m[6]+" "+m[7]),cuota_partido:normCuota(m[2]),selecciones:[{linea:normMercado(m[1])||m[1],cuota:normCuota(m[2])}]});
+  }
+  return eventos;
+}
+
+function parseWinamax(raw){
+  const text=raw.replace(/(MYMATCH)/gi,"\nMYMATCH").replace(/(Cuota total)/gi,"\nCuota total").replace(/(• )/g,"\n• ").replace(/(\d,\d{2})\s+/g,"$1\n");
+  const lines=text.split("\n").map(l=>l.trim()).filter(Boolean);
+  const eventos=[];let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    if(/mymatch/i.test(line)){
+      const cuota=normCuota(line.match(/([\d,.]+)\s*$/)?.[1]);
+      const sels=[];i++;
+      while(i<lines.length&&lines[i].startsWith("•")){sels.push({linea:normMercado(lines[i].replace(/^•\s*/,""))||lines[i],cuota:null});i++;}
+      for(let j=i;j<Math.min(i+4,lines.length);j++){
+        const wm=lines[j].match(/^(.+?)\s*-\s*(.+?)\s+(hoy|lun|mar|mié|jue|vie|sáb|dom)/i);
+        if(wm){eventos.push({partido:wm[1].trim()+" vs "+wm[2].trim(),equipo_local:wm[1].trim(),equipo_visitante:wm[2].trim(),horario:lines[j].match(/(\d{2}:\d{2})/)?.[1]||null,fecha_evento:inferFecha(lines[j]),cuota_partido:cuota,selecciones:sels});i=j+1;break;}
+      }
+      continue;
+    }
+    const sm=line.match(/^(.+?)\s+([\d,.]{3,7})\s*$/);
+    if(sm&&!/(mymatch|cuota total|reutilizar|compartir)/i.test(line)){
+      const cuota=normCuota(sm[2]);
+      if(cuota){
+        for(let j=i+1;j<Math.min(i+4,lines.length);j++){
+          const wm=lines[j].match(/^(.+?)\s*-\s*(.+?)\s+(hoy|lun|mar|mié|jue|vie|sáb|dom)/i);
+          if(wm){eventos.push({partido:wm[1].trim()+" vs "+wm[2].trim(),equipo_local:wm[1].trim(),equipo_visitante:wm[2].trim(),horario:lines[j].match(/(\d{2}:\d{2})/)?.[1]||null,fecha_evento:inferFecha(lines[j]),cuota_partido:cuota,selecciones:[{linea:normMercado(sm[1])||sm[1],cuota}]});i=j+1;break;}
+        }
+      }
+    }
+    i++;
+  }
+  return eventos;
+}
+
+function parseOCRText(rawText){
+  const casa=detectarApp(rawText),dep=detectarDeporte(rawText),isBet=casa==="Bet365";
+  let estado="pendiente";
+  if(/en curso/i.test(rawText))estado="en_curso";
+  if(/\bganado\b/i.test(rawText))estado="ganado";
+  if(/\bperdido\b/i.test(rawText))estado="perdido";
+  const eventos=isBet?parseBet365(rawText):parseWinamax(rawText);
+  let cuotaTotal=null;
+  const ctM=rawText.match(/Cuota total\s+([\d,.]+)/i);if(ctM)cuotaTotal=normCuota(ctM[1]);
+  if(!cuotaTotal&&eventos.length>0){
+    const prod=eventos.reduce((a,e)=>a*(e.cuota_partido||1),1);
+    const bM=rawText.match(/\+([\d.]+)%.*combinadas/i);
+    cuotaTotal=Math.round(prod*(bM?1+parseFloat(bM[1])/100:1)*100)/100;
+  }
+  return{casa_apuestas:casa,tipo_apuesta:eventos.length>1?"combinada":"simple",cuota_total:cuotaTotal,stake:null,deporte:dep,estado,eventos,texto_raw:rawText};
+}
+
 
 // ── Scan ──────────────────────────────────────────────────────────────────────
 async function scanImage() {
