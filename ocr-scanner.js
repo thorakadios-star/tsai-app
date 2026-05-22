@@ -20,7 +20,7 @@ async function extractTextFromImage(imageBase64) {
   );
   if (!res.ok) throw new Error(`Vision API: ${res.status}`);
   const data = await res.json();
-  const text = data.responses?.[0]?.fullTextAnnotation?.text;
+  const text = data.responses && data.responses[0] && data.responses[0].fullTextAnnotation && data.responses[0].fullTextAnnotation.text;
   if (!text) throw new Error('No se detectó texto en la imagen');
   return text.trim();
 }
