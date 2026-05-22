@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>TSAI · Nuevo Pick</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--a:#5EEAD4;--ai:#04111C;--pos:#34D399;--neg:#F87171;--gold:#FBBF24;
+  --bg0:#060A18;--bg1:#0B1024;--bg2:#11183A;--bg3:#1A2350;
+  --b:rgba(120,170,255,0.12);--bs:rgba(120,170,255,0.22);
+  --i0:#EAF2FF;--i1:rgba(234,242,255,0.70);--i2:rgba(234,242,255,0.45);--i3:rgba(234,242,255,0.22)}
+body{background:var(--bg0);color:var(--i0);font-family:'Space Grotesk',sans-serif;
+  font-size:14px;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom,0)}
+.header{display:flex;align-items:center;justify-content:space-between;
+  padding:52px 18px 14px;border-bottom:1px solid var(--b)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-box{width:32px;height:32px;border-radius:8px;background:rgba(94,234,212,0.12);
+  border:1px solid rgba(94,234,212,0.3);display:flex;align-items:center;
+  justify-content:center;font-weight:900;font-size:12px;color:var(--a)}
+.logo-name{font-weight:700;font-size:14px}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--i2);
+  letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.back{height:34px;padding:0 14px;border-radius:999px;background:transparent;
+  border:1px solid var(--bs);color:var(--i1);font-size:12px;cursor:pointer;
+  text-decoration:none;display:flex;align-items:center}
+.wrap{padding:20px 18px;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.section{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--i2);margin-bottom:8px;display:block}
+.upload{border:1px dashed rgba(94,234,212,0.35);border-radius:12px;padding:24px 16px;
+  text-align:center;cursor:pointer;background:rgba(94,234,212,0.02);
+  position:relative;transition:all .15s}
+.upload:hover{background:rgba(94,234,212,0.06)}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.upload-icon{font-size:28px;margin-bottom:8px}
+.upload-title{font-weight:600;color:var(--i0);margin-bottom:3px}
+.upload-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--i2);
+  letter-spacing:.1em;text-transform:uppercase}
+.preview{display:none;position:relative;border-radius:10px;overflow:hidden}
+.preview img{width:100%;display:block;border-radius:10px}
+.preview-clear{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+  background:rgba(0,0,0,0.7);border:1px solid var(--bs);color:var(--i0);
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--i2)}
+input,select,textarea{background:var(--bg2);border:1px solid var(--bs);border-radius:8px;
+  color:var(--i0);font-family:'Space Grotesk',sans-serif;font-size:13px;
+  padding:10px 12px;outline:none;width:100%;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:rgba(94,234,212,.5)}
+select option{background:var(--bg2)}
+textarea{resize:vertical;min-height:72px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ocr-badge{display:none;align-items:center;gap:6px;padding:6px 10px;margin-top:8px;
+  background:rgba(94,234,212,0.08);border:1px solid rgba(94,234,212,0.3);
+  border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--a)}
+.ocr-badge.visible{display:flex}
+.progress{margin-top:8px;display:none}
+.progress.visible{display:block}
+.progress-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--i2);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;
+  display:flex;align-items:center;gap:6px}
+.spin{width:10px;height:10px;border-radius:50%;border:2px solid var(--bg3);
+  border-top-color:var(--a);animation:spin .7s linear infinite}
+.bar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;background:var(--a);border-radius:2px;transition:width .4s ease}
+.btn-primary{height:48px;width:100%;background:var(--a);color:var(--ai);border:none;
+  border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.04em;
+  text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.pick-card{background:var(--bg1);border:1px solid var(--b);border-radius:12px;padding:14px;
+  display:flex;flex-direction:column;gap:10px}
+.pick-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.pick-cuota{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--a)}
+.pick-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--i2);margin-top:3px}
+.pick-badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--bg3);border:1px solid var(--bs);color:var(--i1)}
+.badge.MAX{background:rgba(94,234,212,.1);border-color:rgba(94,234,212,.4);color:var(--a)}
+.badge.ALTA{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--pos)}
+.badge.MEDIA{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.4);color:var(--gold)}
+.pick-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.btn-win{height:36px;background:rgba(52,211,153,.1);color:var(--pos);border:1px solid rgba(52,211,153,.4);border-radius:8px;font-weight:600;font-size:11px;cursor:pointer}
+.btn-loss{height:36px;background:rgba(248,113,113,.1);color:var(--neg);border:1px solid rgba(248,113,113,.4);border-radius:8px;font-weight:600;font-size:11px;cursor:pointer}
+.btn-void{height:36px;background:var(--bg3);color:var(--i2);border:1px solid var(--bs);border-radius:8px;font-weight:600;font-size:11px;cursor:pointer}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0));left:50%;
+  transform:translateX(-50%) translateY(0);background:var(--bg2);
+  border:1px solid var(--bs);border-radius:999px;padding:9px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--i0);
+  box-shadow:0 8px 28px rgba(0,0,0,.4);white-space:nowrap;z-index:99;
+  pointer-events:none;transition:all .3s}
+.toast.hidden{opacity:0;transform:translateX(-50%) translateY(8px)}
+.toast.ok{border-color:rgba(52,211,153,.4);color:var(--pos)}
+.toast.err{border-color:rgba(248,113,113,.4);color:var(--neg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-box">TS</div>
+    <div><div class="logo-name">TrueStats AI</div><div class="logo-sub">Nuevo Pick</div></div>
+  </div>
+  <a href="/" class="back">‹ App</a>
+</div>
+
+<div class="wrap">
+
+  <div class="field">
+    <label>Tipster</label>
+    <select id="tipsterSel" onchange="onTipsterChange()">
+      <option value="">Cargando…</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Canal</label>
+    <select id="canalSel" onchange="updateBtn()">
+      <option value="">Selecciona tipster primero</option>
+    </select>
+  </div>
+
+  <div>
+    <span class="section">Imagen del boleto</span>
+    <div class="upload" id="uploadZone">
+      <input type="file" id="imgInput" accept="image/*" onchange="onImagen(this)"/>
+      <div class="upload-icon">📸</div>
+      <div class="upload-title">Sube la captura del boleto</div>
+      <div class="upload-sub">Bet365 · Winamax · JPG / PNG</div>
+    </div>
+    <div class="preview" id="previewWrap">
+      <img id="previewImg" src="" alt=""/>
+      <button class="preview-clear" onclick="clearImagen()">✕</button>
+    </div>
+    <div class="progress" id="ocrProgress">
+      <div class="progress-label"><div class="spin"></div><span id="ocrLabel">Extrayendo cuota…</span></div>
+      <div class="bar"><div class="bar-fill" id="ocrBar" style="width:0%"></div></div>
+    </div>
+    <div class="ocr-badge" id="ocrBadge">
+      ⚡ Cuota OCR: <strong id="ocrCuotaVal"></strong><span id="ocrCasaVal" style="color:var(--i2)"></span>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="field">
+      <label>Cuota</label>
+      <input type="number" id="fCuota" step="0.01" min="1" placeholder="1.85" oninput="updateBtn()"/>
+    </div>
+    <div class="field">
+      <label>Stake (u)</label>
+      <input type="number" id="fStake" step="0.5" min="0.5" placeholder="10"/>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="field">
+      <label>Confianza</label>
+      <select id="fConfianza">
+        <option value="MAX">MAX</option>
+        <option value="ALTA" selected>ALTA</option>
+        <option value="MEDIA">MEDIA</option>
+        <option value="BAJA">BAJA</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <select id="fTipo">
+        <option value="pre-partido">Pre-partido</option>
+        <option value="live">Live</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Categoría</label>
+    <select id="fCategoria">
+      <option value="gratis">Gratis</option>
+      <option value="premium">Premium</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Análisis personal</label>
+    <textarea id="fAnalisis" placeholder="Razonamiento del pick, contexto del partido…"></textarea>
+  </div>
+
+  <button class="btn-primary" id="submitBtn" onclick="enviarPick()" disabled>
+    📤 PUBLICAR PICK
+  </button>
+
+  <div id="pendientesWrap" style="display:none">
+    <span class="section" style="margin-top:4px">Picks pendientes de liquidar</span>
+    <div id="pendientesList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="supabase-client.js"></script>
+<script src="ocr-scanner.js"></script>
+<script src="picks.js"></script>
+<script>
+let imgBase64 = null;
+let casaOCR   = '';
+
+async function init() {
+  const { data } = await sb.from('tipsters_profiles')
+    .select('id, display_name, username').order('display_name');
+  const sel = document.getElementById('tipsterSel');
+  sel.innerHTML = '<option value="">Selecciona tipster…</option>' +
+    (data||[]).map(t => `<option value="${t.id}">${t.display_name||t.username}</option>`).join('');
+}
+
+async function onTipsterChange() {
+  const tid  = document.getElementById('tipsterSel').value;
+  const cSel = document.getElementById('canalSel');
+  if(!tid){ cSel.innerHTML='<option value="">Selecciona tipster primero</option>'; return; }
+  const { data } = await sb.from('canales').select('id,nombre,tipo').eq('tipster_id',tid).eq('activo',true);
+  cSel.innerHTML = (data&&data.length)
+    ? '<option value="">Selecciona canal…</option>'+data.map(c=>`<option value="${c.id}">${c.nombre} (${c.tipo})</option>`).join('')
+    : '<option value="">Sin canales</option>';
+  updateBtn();
+  cargarPendientes(tid);
+}
+
+function updateBtn() {
+  document.getElementById('submitBtn').disabled =
+    !document.getElementById('tipsterSel').value ||
+    !document.getElementById('canalSel').value   ||
+    !document.getElementById('fCuota').value;
+}
+
+async function onImagen(input) {
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('previewImg').src = URL.createObjectURL(file);
+  document.getElementById('previewWrap').style.display = 'block';
+  document.getElementById('uploadZone').style.display  = 'none';
+  showProg(true, 'Enviando a Vision…', 35);
+  try {
+    imgBase64 = await fileToBase64(file);
+    showProg(true, 'Extrayendo cuota…', 70);
+    const { cuota, casa } = await procesarImagen(imgBase64);
+    showProg(false);
+    if(cuota){
+      document.getElementById('fCuota').value   = cuota;
+      document.getElementById('ocrCuotaVal').textContent = cuota;
+      document.getElementById('ocrCasaVal').textContent  = casa ? ` · ${casa}` : '';
+      document.getElementById('ocrBadge').classList.add('visible');
+      casaOCR = casa || '';
+    } else {
+      toast('Sin cuota detectada — introdúcela manual','err');
+    }
+  } catch(e){ showProg(false); toast('OCR: '+e.message,'err'); }
+  updateBtn();
+}
+
+function clearImagen(){
+  imgBase64=null; casaOCR='';
+  document.getElementById('previewWrap').style.display='none';
+  document.getElementById('uploadZone').style.display='block';
+  document.getElementById('imgInput').value='';
+  document.getElementById('ocrBadge').classList.remove('visible');
+  document.getElementById('fCuota').value='';
+  updateBtn();
+}
+
+async function enviarPick(){
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Publicando…';
+  try{
+    let imagenUrl=null;
+    if(imgBase64){
+      const fname=`picks/${document.getElementById('tipsterSel').value}/${Date.now()}.jpg`;
+      const arr=new Uint8Array(atob(imgBase64).split('').map(c=>c.charCodeAt(0)));
+      const {data:up,error:ue}=await sb.storage.from('boletos').upload(fname,new Blob([arr],{type:'image/jpeg'}),{contentType:'image/jpeg'});
+      if(!ue) imagenUrl=sb.storage.from('boletos').getPublicUrl(up.path).data.publicUrl;
+    }
+    const id=await crearPick({
+      tipster_id:document.getElementById('tipsterSel').value,
+      canal_id:document.getElementById('canalSel').value,
+      datos:{
+        cuota:document.getElementById('fCuota').value,
+        stake:document.getElementById('fStake').value,
+        nivel_confianza:document.getElementById('fConfianza').value,
+        tipo_partido:document.getElementById('fTipo').value,
+        categoria:document.getElementById('fCategoria').value,
+        analisis:document.getElementById('fAnalisis').value,
+        casa_apuestas:casaOCR,
+      },
+      imagen_url:imagenUrl,
+    });
+    toast(`✓ Pick #${id} publicado`,'ok');
+    resetForm();
+    cargarPendientes(document.getElementById('tipsterSel').value);
+  }catch(e){toast('✗ '+e.message,'err');}
+  btn.disabled=false; btn.textContent='📤 PUBLICAR PICK';
+  updateBtn();
+}
+
+async function cargarPendientes(tid){
+  if(!tid)return;
+  try{
+    const picks=await cargarPicksPendientes(tid);
+    const wrap=document.getElementById('pendientesWrap');
+    if(!picks.length){wrap.style.display='none';return;}
+    wrap.style.display='block';
+    document.getElementById('pendientesList').innerHTML=picks.map(p=>`
+      <div class="pick-card" id="pc-${p.id}">
+        <div class="pick-header">
+          <div>
+            <div class="pick-cuota">@${p.cuota_total||'—'}</div>
+            <div class="pick-meta">${p.casa_apuestas||''} · ${p.stake||'—'}u · ${fmt(p.fecha_procesado)}</div>
+          </div>
+          <div class="pick-badges">
+            <span class="badge ${p.confianza||''}">${p.confianza||'—'}</span>
+            <span class="badge">${p.tipo_apuesta||'—'}</span>
+            <span class="badge">${p.tipo_acceso||'—'}</span>
+          </div>
+        </div>
+        ${p.analisis?`<div style="font-size:12px;color:var(--i1);line-height:1.5">${p.analisis}</div>`:''}
+        <div class="pick-actions">
+          <button class="btn-win"  onclick="liquidar(${p.id},'ganado')">✓ GANADO</button>
+          <button class="btn-loss" onclick="liquidar(${p.id},'perdido')">✗ PERDIDO</button>
+          <button class="btn-void" onclick="liquidar(${p.id},'nulo')">— NULO</button>
+        </div>
+      </div>`).join('');
+  }catch(e){console.warn(e);}
+}
+
+async function liquidar(id,resultado){
+  try{
+    const profit=await liquidarPick(id,resultado);
+    document.getElementById(`pc-${id}`)?.remove();
+    const s=profit>=0?'+':'';
+    toast(`${resultado.toUpperCase()} · ${s}${profit}u`,resultado==='ganado'?'ok':'err');
+    if(!document.getElementById('pendientesList').children.length)
+      document.getElementById('pendientesWrap').style.display='none';
+  }catch(e){toast('✗ '+e.message,'err');}
+}
+
+function resetForm(){
+  clearImagen();
+  ['fCuota','fStake','fAnalisis'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fConfianza').value='ALTA';
+  document.getElementById('fTipo').value='pre-partido';
+  document.getElementById('fCategoria').value='gratis';
+}
+
+function showProg(v,label,pct){
+  document.getElementById('ocrProgress').classList.toggle('visible',v);
+  if(label)document.getElementById('ocrLabel').textContent=label;
+  if(pct!==undefined)document.getElementById('ocrBar').style.width=pct+'%';
+}
+
+function fmt(ts){
+  if(!ts)return'—';
+  return new Date(ts).toLocaleDateString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+let tt;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type}`;
+  clearTimeout(tt);
+  tt=setTimeout(()=>el.classList.add('hidden'),3000);
+}
+
+init();
+</script>
+</body>
+</html>
