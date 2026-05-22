@@ -418,15 +418,17 @@ function ChatScreen({params,onTab}){
                   <Kicker c={ec} style={{fontSize:8}}>{estadoLabel[estado]||estado}</Kicker>
                 </div>
               </div>
-              <Display style={{fontSize:15,display:'block',lineHeight:1.2,marginBottom:10}}>
-                {p.boleto_texto||p.tipo_apuesta||'Pick'}
-              </Display>
+              {p.imagen_url&&<img src={p.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:10,display:'block'}} alt="boleto"/>}
+<Display style={{fontSize:15,display:'block',lineHeight:1.2,marginBottom:p.analisis?4:10}}>
+  {p.casa_apuestas||'Pick'}
+</Display>
+{p.analisis&&<p style={{fontSize:12,color:C.ink1,lineHeight:1.5,marginBottom:10}}>{p.analisis}</p>}
               <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between'}}>
                 <div style={{flex:1}}>
-                  <Kicker>TIPO</Kicker>
-                  <Mono style={{fontSize:12,fontWeight:600,display:'block'}}>{p.tipo_apuesta||'—'}</Mono>
-                  {p.casa_apuestas&&<span style={{fontSize:10,color:C.ink2}}>{p.casa_apuestas}</span>}
-                </div>
+  <Kicker>TIPO</Kicker>
+  <Mono style={{fontSize:12,fontWeight:600,display:'block'}}>{p.tipo_apuesta||'—'}</Mono>
+  {p.casa_apuestas&&<span style={{fontSize:10,color:C.ink2}}>{p.casa_apuestas}</span>}
+</div>
                 <div style={{textAlign:'right'}}>
                   <Kicker>CUOTA</Kicker>
                   <Mono style={{fontSize:24,fontWeight:500,display:'block',lineHeight:1}}>
