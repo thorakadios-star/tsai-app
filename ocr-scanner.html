@@ -336,7 +336,8 @@ async function cargarPendientes(tid){
 async function liquidar(id,resultado){
   try{
     const profit=await liquidarPick(id,resultado);
-    document.getElementById(`pc-${id}`)?.remove();
+    const el = document.getElementById('pc-'+id);
+if(el) el.remove();
     const s=profit>=0?'+':'';
     toast(`${resultado.toUpperCase()} · ${s}${profit}u`,resultado==='ganado'?'ok':'err');
     if(!document.getElementById('pendientesList').children.length)
