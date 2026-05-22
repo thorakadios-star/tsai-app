@@ -70,9 +70,11 @@ function detectarCasa(text) {
 // ── Función principal: procesar imagen ───────────────────────────────────────
 async function procesarImagen(imageBase64) {
   const texto = await extractTextFromImage(imageBase64);
+  console.log('OCR RAW:', texto);        // ← añade esta línea
   const cuota = extraerCuota(texto);
   const casa  = detectarCasa(texto);
   return { cuota, casa, texto_raw: texto };
+}
 }
 
 // ── Convertir File a base64 ───────────────────────────────────────────────────
