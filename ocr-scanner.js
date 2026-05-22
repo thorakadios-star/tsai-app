@@ -30,30 +30,31 @@ async function extractTextFromImage(imageBase64) {
 // - En Bet365: aparece justo después del nombre del equipo o mercado
 // - En Winamax: aparece al lado de MYMATCH o al final de la línea
 function extraerCuota(text) {
-  const matches = [...text.matchAll(CUOTA_RE)].map(m => parseFloat(m[1]));
-  if (!matches.length) return null;
+  // Winamax: cuota total explícita
+  const ctM = text.match(/Cuota total\s+([\d,\.]+)/i);
+  if(ctM) return parseFloat(ctM[1].replace(',','.'));
 
-  // Filtrar cuotas irreales (muy bajas o muy altas)
-  const validas = matches.filter(c => c > 1.05 && c < 50);
-  if (!validas.length) return null;
+  // Winamax MYMATCH: cuota al lado de MYMATCH
+  const mmM = text.match(/MYMATCH\s+([\d,\.]+)/i);
+  if(mmM) return parseFloat(mmM[1].replace(',','.'));
 
-  // Si hay "Cuota total" en el texto (Winamax), buscarla directamente
-  const cuotaTotalM = text.match(/Cuota total\s+([\d,\.]+)/i);
-  if (cuotaTotalM) return parseFloat(cuotaTotalM[1].replace(',', '.'));
+  // Bet365 CREAR APUESTA
+  const caM = text.match(/CREAR APUESTA\s+([\d\.]+)/i);
+  if(caM) return parseFloat(caM[1]);
 
-  // Si hay CREAR APUESTA (Bet365), la cuota del grupo
-  const crearM = text.match(/CREAR APUESTA\s+([\d\.]+)/i);
-  if (crearM) {
-    const c = parseFloat(crearM[1]);
-    if (c > 1.05) return c;
+  // Bet365 bullet: • Texto 1.22
+  const bM = text.match(/•[^•\n]{2,50}?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s/);
+  if(bM) return parseFloat(bM[1]);
+
+  // Último recurso: todas las cuotas válidas, ignorar líneas de mercado (Over/Under)
+  const lineas = text.split(/\n|\s{2,}/);
+  for(const linea of lineas.reverse()){
+    // Ignorar líneas que son mercados (Over X, Under X, Más de X)
+    if(/más de|menos de|over|under/i.test(linea)) continue;
+    const m = linea.match(/(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/);
+    if(m) return parseFloat(m[1]);
   }
-
-  // Si hay un solo evento: buscar la cuota junto a bullet o selección
-  const bulletM = text.match(/•[^•]{2,60}?(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/);
-  if (bulletM) return parseFloat(bulletM[1]);
-
-  // Fallback: la cuota más alta (suele ser la total en combinadas)
-  return Math.max(...validas);
+  return null;
 }
 
 // ── Detectar casa de apuestas ─────────────────────────────────────────────────
