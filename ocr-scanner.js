@@ -26,52 +26,24 @@ async function extractTextFromImage(imageBase64) {
 
 // ── Extraer cuota del texto OCR ───────────────────────────────────────────────
 function extraerCuota(text) {
-  // Winamax: cuota total explícita
+  // Winamax: cuota total explícita — no calcular, ya viene hecha
   const ctM = text.match(/Cuota total\s+([\d,\.]+)/i);
   if(ctM) return parseFloat(ctM[1].replace(',','.'));
 
-  // Winamax MYMATCH
-  const mmM = text.match(/MYMATCH\s+([\d,\.]+)/i);
-  if(mmM) return parseFloat(mmM[1].replace(',','.'));
-
-  // Bet365: recoger TODAS las cuotas de bloque
-  // CREAR APUESTA X → cuota del grupo
-  // Selección suelta X → cuota individual
-  // Cuota total = producto de todos los bloques
-  const bloques = [];
-
-  // Cuotas de CREAR APUESTA
-  const crearRe = /CREAR APUESTA\s+([\d\.]+)/gi;
+  // Recoger TODOS los números con formato X.XX o X.XXX del texto
+  const todas = [];
+  const re = /\b([1-9]\.[0-9]{2,3})\b/g;
   let m;
-  while((m = crearRe.exec(text)) !== null) {
-    bloques.push(parseFloat(m[1]));
+  while((m = re.exec(text)) !== null) {
+    todas.push(parseFloat(m[1]));
   }
 
-  // Cuotas de selecciones sueltas (bullet ○ o •)
-  // Patrón: nombre/mercado seguido de cuota al final de línea
-  const selRe = /^[○•°]\s*.+?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2,3})\s*$/gm;
-  while((m = selRe.exec(text)) !== null) {
-    bloques.push(parseFloat(m[1]));
-  }
+  if(!todas.length) return null;
+  if(todas.length === 1) return todas[0];
 
-  if(bloques.length > 1) {
-    // Calcular cuota total = producto de todos los bloques
-    const total = bloques.reduce((a, b) => a * b, 1);
-    return Math.round(total * 100) / 100;
-  }
-  if(bloques.length === 1) return bloques[0];
-
-  // Bet365 columna final (triple, acumulada)
-  const lineas = text.split('\n').map(l => l.trim());
-  const cuotasFinales = [];
-  for(const l of lineas){
-    const lm = l.match(/^(1\.[0-9]{2,3}|[2-9]\.[0-9]{2,3})$/);
-    if(lm) cuotasFinales.push(parseFloat(lm[1]));
-  }
-  if(cuotasFinales.length > 1) return Math.max(...cuotasFinales);
-  if(cuotasFinales.length === 1) return cuotasFinales[0];
-
-  return null;
+  // Multiplicar todas — resultado = cuota total combinada
+  const total = todas.reduce((a, b) => a * b, 1);
+  return Math.round(total * 100) / 100;
 }
 
 // ── Detectar casa de apuestas ─────────────────────────────────────────────────
