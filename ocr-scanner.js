@@ -1,6 +1,5 @@
 // ocr-scanner.js
 // Responsabilidad única: extraer la cuota de una imagen de boleto
-
 const CUOTA_RE = /(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/g;
 
 // ── Google Vision ─────────────────────────────────────────────────────────────
@@ -26,9 +25,6 @@ async function extractTextFromImage(imageBase64) {
 }
 
 // ── Extraer cuota del texto OCR ───────────────────────────────────────────────
-// Estrategia: buscar la cuota más prominente
-// - En Bet365: aparece justo después del nombre del equipo o mercado
-// - En Winamax: aparece al lado de MYMATCH o al final de la línea
 function extraerCuota(text) {
   // Winamax: cuota total explícita
   const ctM = text.match(/Cuota total\s+([\d,\.]+)/i);
@@ -46,10 +42,20 @@ function extraerCuota(text) {
   const bM = text.match(/•[^•\n]{2,50}?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s/);
   if(bM) return parseFloat(bM[1]);
 
-  // Último recurso: todas las cuotas válidas, ignorar líneas de mercado (Over/Under)
-  const lineas = text.split(/\n|\s{2,}/);
-  for(const linea of lineas.reverse()){
-    // Ignorar líneas que son mercados (Over X, Under X, Más de X)
+  // Bet365 combinada: bloque de cuotas al final en líneas separadas
+  // La cuota total es siempre la más alta del bloque
+  const todasCuotas = [];
+  const lineas = text.split('\n').map(l => l.trim());
+  for(const l of lineas){
+    const m = l.match(/^(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})$/);
+    if(m) todasCuotas.push(parseFloat(m[1]));
+  }
+  if(todasCuotas.length > 1) return Math.max(...todasCuotas);
+  if(todasCuotas.length === 1) return todasCuotas[0];
+
+  // Último recurso: ignorar líneas de mercado
+  const lineasRev = text.split(/\n|\s{2,}/);
+  for(const linea of lineasRev.reverse()){
     if(/más de|menos de|over|under/i.test(linea)) continue;
     const m = linea.match(/(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/);
     if(m) return parseFloat(m[1]);
@@ -70,7 +76,7 @@ function detectarCasa(text) {
 // ── Función principal: procesar imagen ───────────────────────────────────────
 async function procesarImagen(imageBase64) {
   const texto = await extractTextFromImage(imageBase64);
-  console.log('OCR RAW:', texto);        // ← añade esta línea
+  console.log('OCR RAW:', texto);
   const cuota = extraerCuota(texto);
   const casa  = detectarCasa(texto);
   return { cuota, casa, texto_raw: texto };
