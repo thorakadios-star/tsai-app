@@ -29,33 +29,30 @@ function extraerCuota(text) {
   // Normalizar comas a puntos
   const t = text.replace(/(\d),(\d)/g, '$1.$2');
 
-  // Winamax: cuota total explícita
+  // Winamax: cuota total explícita — siempre fiable
   const ctM = t.match(/Cuota total[\s\n]+([\d\.]+)/i);
   if(ctM) return parseFloat(ctM[1]);
 
-  // Winamax MYMATCH
-  const mmM = t.match(/MYMATCH\s+([\d\.]+)/i);
-  if(mmM) return parseFloat(mmM[1]);
-
-  // Bet365 CREAR APUESTA — recoger también selecciones sueltas y multiplicar
-  const caM = t.match(/CREAR APUESTA\s+([\d\.]+)/i);
-  if(caM) {
-    const bloques = [parseFloat(caM[1])];
-    const selRe = /^[○•°]\s*.+?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2,3})\s*$/gm;
-    let ms;
-    while((ms = selRe.exec(t)) !== null) bloques.push(parseFloat(ms[1]));
-    if(bloques.length > 1) return Math.round(bloques.reduce((a,b) => a*b, 1) * 100) / 100;
-    return bloques[0];
-  }
-
-  // Recoger todos los X.XX y multiplicar
+  // Recoger TODOS los X.XX del texto
   const todas = [];
   const re = /\b([1-9]\.[0-9]{2,3})\b/g;
   let m;
   while((m = re.exec(t)) !== null) todas.push(parseFloat(m[1]));
+
   console.log('CUOTAS ENCONTRADAS:', todas);
+
   if(!todas.length) return null;
   if(todas.length === 1) return todas[0];
+
+  // Bet365 CREAR APUESTA — multiplicar todas
+  const caM = t.match(/CREAR APUESTA\s+([\d\.]+)/i);
+  if(caM) return Math.round(todas.reduce((a,b) => a*b, 1) * 100) / 100;
+
+  // Winamax MYMATCH con una sola cuota — devolver directamente
+  const mmM = t.match(/MYMATCH\s+([\d\.]+)/i);
+  if(mmM && todas.length === 1) return parseFloat(mmM[1]);
+
+  // Multiplicar todas
   return Math.round(todas.reduce((a,b) => a*b, 1) * 100) / 100;
 }
 
