@@ -37,7 +37,7 @@ function extraerCuota(text) {
   while((m = re.exec(text)) !== null) {
     todas.push(parseFloat(m[1]));
   }
-
+console.log('CUOTAS ENCONTRADAS:', todas);
   if(!todas.length) return null;
   if(todas.length === 1) return todas[0];
 
