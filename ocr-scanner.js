@@ -26,24 +26,37 @@ async function extractTextFromImage(imageBase64) {
 
 // ── Extraer cuota del texto OCR ───────────────────────────────────────────────
 function extraerCuota(text) {
-  // Winamax: cuota total explícita — no calcular, ya viene hecha
-  const ctM = text.match(/Cuota total\s+([\d,\.]+)/i);
-  if(ctM) return parseFloat(ctM[1].replace(',','.'));
+  // Normalizar comas a puntos
+  const t = text.replace(/(\d),(\d)/g, '$1.$2');
 
-  // Recoger TODOS los números con formato X.XX o X.XXX del texto
+  // Winamax: cuota total explícita
+  const ctM = t.match(/Cuota total[\s\n]+([\d\.]+)/i);
+  if(ctM) return parseFloat(ctM[1]);
+
+  // Winamax MYMATCH
+  const mmM = t.match(/MYMATCH\s+([\d\.]+)/i);
+  if(mmM) return parseFloat(mmM[1]);
+
+  // Bet365 CREAR APUESTA — recoger también selecciones sueltas y multiplicar
+  const caM = t.match(/CREAR APUESTA\s+([\d\.]+)/i);
+  if(caM) {
+    const bloques = [parseFloat(caM[1])];
+    const selRe = /^[○•°]\s*.+?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2,3})\s*$/gm;
+    let ms;
+    while((ms = selRe.exec(t)) !== null) bloques.push(parseFloat(ms[1]));
+    if(bloques.length > 1) return Math.round(bloques.reduce((a,b) => a*b, 1) * 100) / 100;
+    return bloques[0];
+  }
+
+  // Recoger todos los X.XX y multiplicar
   const todas = [];
   const re = /\b([1-9]\.[0-9]{2,3})\b/g;
   let m;
-  while((m = re.exec(text)) !== null) {
-    todas.push(parseFloat(m[1]));
-  }
-console.log('CUOTAS ENCONTRADAS:', todas);
+  while((m = re.exec(t)) !== null) todas.push(parseFloat(m[1]));
+  console.log('CUOTAS ENCONTRADAS:', todas);
   if(!todas.length) return null;
   if(todas.length === 1) return todas[0];
-
-  // Multiplicar todas — resultado = cuota total combinada
-  const total = todas.reduce((a, b) => a * b, 1);
-  return Math.round(total * 100) / 100;
+  return Math.round(todas.reduce((a,b) => a*b, 1) * 100) / 100;
 }
 
 // ── Detectar casa de apuestas ─────────────────────────────────────────────────
