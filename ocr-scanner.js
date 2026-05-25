@@ -30,36 +30,47 @@ function extraerCuota(text) {
   const ctM = text.match(/Cuota total\s+([\d,\.]+)/i);
   if(ctM) return parseFloat(ctM[1].replace(',','.'));
 
-  // Winamax MYMATCH: cuota al lado de MYMATCH
+  // Winamax MYMATCH
   const mmM = text.match(/MYMATCH\s+([\d,\.]+)/i);
   if(mmM) return parseFloat(mmM[1].replace(',','.'));
 
-  // Bet365 CREAR APUESTA
-  const caM = text.match(/CREAR APUESTA\s+([\d\.]+)/i);
-  if(caM) return parseFloat(caM[1]);
+  // Bet365: recoger TODAS las cuotas de bloque
+  // CREAR APUESTA X → cuota del grupo
+  // Selección suelta X → cuota individual
+  // Cuota total = producto de todos los bloques
+  const bloques = [];
 
-  // Bet365 bullet: • Texto 1.22
-  const bM = text.match(/•[^•\n]{2,50}?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})\s/);
-  if(bM) return parseFloat(bM[1]);
+  // Cuotas de CREAR APUESTA
+  const crearRe = /CREAR APUESTA\s+([\d\.]+)/gi;
+  let m;
+  while((m = crearRe.exec(text)) !== null) {
+    bloques.push(parseFloat(m[1]));
+  }
 
-  // Bet365 combinada: bloque de cuotas al final en líneas separadas
-  // La cuota total es siempre la más alta del bloque
-  const todasCuotas = [];
+  // Cuotas de selecciones sueltas (bullet ○ o •)
+  // Patrón: nombre/mercado seguido de cuota al final de línea
+  const selRe = /^[○•°]\s*.+?\s+(1\.[0-9]{2,3}|[2-9]\.[0-9]{2,3})\s*$/gm;
+  while((m = selRe.exec(text)) !== null) {
+    bloques.push(parseFloat(m[1]));
+  }
+
+  if(bloques.length > 1) {
+    // Calcular cuota total = producto de todos los bloques
+    const total = bloques.reduce((a, b) => a * b, 1);
+    return Math.round(total * 100) / 100;
+  }
+  if(bloques.length === 1) return bloques[0];
+
+  // Bet365 columna final (triple, acumulada)
   const lineas = text.split('\n').map(l => l.trim());
+  const cuotasFinales = [];
   for(const l of lineas){
-    const m = l.match(/^(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})$/);
-    if(m) todasCuotas.push(parseFloat(m[1]));
+    const lm = l.match(/^(1\.[0-9]{2,3}|[2-9]\.[0-9]{2,3})$/);
+    if(lm) cuotasFinales.push(parseFloat(lm[1]));
   }
-  if(todasCuotas.length > 1) return Math.max(...todasCuotas);
-  if(todasCuotas.length === 1) return todasCuotas[0];
+  if(cuotasFinales.length > 1) return Math.max(...cuotasFinales);
+  if(cuotasFinales.length === 1) return cuotasFinales[0];
 
-  // Último recurso: ignorar líneas de mercado
-  const lineasRev = text.split(/\n|\s{2,}/);
-  for(const linea of lineasRev.reverse()){
-    if(/más de|menos de|over|under/i.test(linea)) continue;
-    const m = linea.match(/(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/);
-    if(m) return parseFloat(m[1]);
-  }
   return null;
 }
 
