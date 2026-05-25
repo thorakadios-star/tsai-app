@@ -30,7 +30,7 @@ function extraerCuota(text) {
   const t = text.replace(/(\d),(\d)/g, '$1.$2');
 
   // Winamax: cuota total explícita — siempre fiable
-  const ctM = t.match(/Cuota total[\s\n]+([\d\.]+)/i);
+  const ctM = t.match(/Cuota total[\s\S]{0,10}?([\d\.]{3,7})/i);
   if(ctM) return parseFloat(ctM[1]);
 
   // Recoger TODOS los X.XX del texto
