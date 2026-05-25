@@ -85,7 +85,7 @@ function useTipsters(){
   const [error,setError]=useState(null);
   useEffect(()=>{
     sb.from('tipsters_profiles')
-      .select('id,display_name,username,bio,sport_focus,is_verified,has_premium,price_monthly,total_picks,wins,losses,voids,yield_pct,win_rate_pct,profit_units,total_staked,created_at')
+      .select('id,display_name,username,bio,sport_focus,is_verified,has_premium,price_monthly,total_picks,wins,losses,voids,yield_pct,win_rate_pct,profit_units,total_staked,avatar_url,created_at')
       .order('yield_pct',{ascending:false})
       .limit(20)
       .then(({data,error})=>{
@@ -103,7 +103,7 @@ function usePicks(tipsterId){
   useEffect(()=>{
     if(!tipsterId){setLoading(false);return;}
     sb.from('boletos')
-      .select('id,casa_apuestas,cuota_total,tipo_apuesta,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado,nivel_confianza,confianza,analisis,imagen_url')
+      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado')
       .eq('tipster_id',tipsterId)
       .order('fecha_procesado',{ascending:false})
       .limit(15)
@@ -130,7 +130,8 @@ function useDailyStats(tipsterId){
 }
 
 // ── Atoms ─────────────────────────────────────────────────────────────────────
-function Avatar({name='?',size=40}){
+function Avatar({name='?',size=40,url=null}){
+  if(url) return <img src={url} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
   const s=(name||'?').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
   const bg=['#7a3030','#7a5a30','#307a5a','#305a7a','#5a307a','#7a3060'][s%6];
   const ini=(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -170,7 +171,7 @@ function NavHeader({title,right,showBack=true}){
 }
 
 // ── TabBar ────────────────────────────────────────────────────────────────────
-const TABS=[{id:'home',label:'Canales',icon:'⊟'},{id:'ranking',label:'Ranking',icon:'◈'},{id:'scanner',label:'Scanner',icon:'📸'},{id:'cuenta',label:'Cuenta',icon:'○'}];
+const TABS=[{id:'home',label:'Canales',icon:'⊟'},{id:'ranking',label:'Ranking',icon:'◈'},{id:'market',label:'Élite',icon:'◆'},{id:'cuenta',label:'Cuenta',icon:'○'}];
 function TabBar({active,onTab}){
   return <div style={{flexShrink:0,display:'grid',gridTemplateColumns:'repeat(4,1fr)',padding:'10px 8px 20px',background:C.bg0,borderTop:`1px solid ${C.border}`}}>
     {TABS.map(t=><button key={t.id} onClick={()=>onTab(t.id)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'5px 0',background:'none',border:'none',cursor:'pointer'}}>
@@ -189,9 +190,7 @@ function SplashScreen(){
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',padding:'80px 28px 40px',overflow:'auto'}}>
     <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:20}}>
       <Pill>PRONÓSTICOS · DATOS REALES · VERIFICADO</Pill>
-      <div style={{width:80,height:80,borderRadius:40,background:'rgba(94,234,212,0.12)',border:'1px solid rgba(94,234,212,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-        <Display style={{fontSize:24,color:C.accent}}>TS</Display>
-      </div>
+      <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/logos/logo-truestats-transparent.png" style={{width:80,height:80,objectFit:'contain'}}/>
       <div style={{textAlign:'center'}}>
         <Display style={{fontSize:44,lineHeight:.95,display:'block'}}>TRUE <span style={{color:C.accent}}>STATS</span></Display>
         <Display style={{fontSize:18,color:C.ink1,fontWeight:500,letterSpacing:4,display:'block',marginTop:6}}>AI</Display>
@@ -279,9 +278,7 @@ function HomeScreen({onTab}){
     {/* Topbar */}
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 16px 12px',flexShrink:0}}>
       <div style={{display:'flex',alignItems:'center',gap:10}}>
-        <div style={{width:32,height:32,borderRadius:8,background:'rgba(94,234,212,0.12)',border:'1px solid rgba(94,234,212,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <Display style={{fontSize:12,color:C.accent}}>TS</Display>
-        </div>
+        <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/logos/logo-truestats-transparent.png" style={{width:32,height:32,borderRadius:8,objectFit:'contain'}}/>
         <div style={{borderLeft:`1px solid ${C.borderStrong}`,paddingLeft:10}}>
           <Kicker>TrueStats AI</Kicker>
           <div><Mono style={{fontSize:10,color:C.accent,letterSpacing:2}}>v0.7</Mono></div>
@@ -341,7 +338,7 @@ function HomeScreen({onTab}){
         {!loading&&!error&&filtered.length===0&&<EmptyState icon="🔍" title="Sin tipsters" sub="No hay tipsters para este deporte"/>}
         <div style={{display:'flex',flexDirection:'column',gap:8,paddingBottom:24,animation:'fadeIn .3s ease'}}>
           {filtered.map(t=><Card key={t.id} onClick={()=>push('chat',{tipster:t})} style={{padding:13,display:'flex',gap:10,alignItems:'center',cursor:'pointer'}}>
-            <Avatar name={t.display_name||t.username||'?'} size={44}/>
+            <Avatar name={t.display_name||t.username||'?'} size={44} url={t.avatar_url}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
                 <span style={{fontSize:14,fontWeight:600,color:C.ink0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.display_name||t.username||'Tipster'}</span>
@@ -388,7 +385,7 @@ function ChatScreen({params,onTab}){
     <div style={{flex:1,overflowY:'auto',padding:'14px 14px 0'}}>
       {/* Channel info strip */}
       <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
-        <Avatar name={t.display_name||'?'} size={32}/>
+        <Avatar name={t.display_name||'?'} size={32} url={t.avatar_url}/>
         <div style={{flex:1}}>
           <div style={{fontSize:12,fontWeight:600,color:C.ink0}}>{t.display_name||t.username}</div>
           <Kicker>{t.total_picks||0} picks · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
@@ -411,47 +408,38 @@ function ChatScreen({params,onTab}){
           <div style={{display:'flex',background:C.bg2,borderRadius:14,border:`1px solid ${estado==='ganado'?'rgba(52,211,153,0.3)':estado==='perdido'?'rgba(248,113,113,0.25)':C.border}`,overflow:'hidden'}}>
             <div style={{width:7,background:ec,flexShrink:0}}/>
             <div style={{flex:1,padding:14}}>
-              {/* Header: estado */}
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
-                <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                  <Kicker c={p.tipo_apuesta==='live'?C.negative:C.ink2}>{p.tipo_apuesta||'—'}</Kicker>
-                  <Kicker c={ec}>{p.nivel_confianza||p.confianza||'—'}</Kicker>
-                </div>
+              <div style={{display:'flex',alignItems:'center',marginBottom:7,gap:8}}>
+                <Kicker>{p.tipo_apuesta||'Apuesta'}</Kicker>
+                <div style={{flex:1}}/>
                 <div style={{padding:'2px 7px',borderRadius:4,border:`1px solid ${ec}55`,background:`${ec}11`}}>
                   <Kicker c={ec} style={{fontSize:8}}>{estadoLabel[estado]||estado}</Kicker>
                 </div>
               </div>
-              {/* Imagen del boleto */}
-              {p.imagen_url&&<img src={p.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:10,display:'block'}}/>}
-              {/* Casa */}
-              <Display style={{fontSize:14,display:'block',marginBottom:p.analisis?6:10}}>
-                {p.casa_apuestas||'Pick'}
+              <Display style={{fontSize:15,display:'block',lineHeight:1.2,marginBottom:10}}>
+                {p.boleto_texto||p.tipo_apuesta||'Pick'}
               </Display>
-              {/* Análisis */}
-              {p.analisis&&<p style={{fontSize:12,color:C.ink1,lineHeight:1.5,marginBottom:10,fontStyle:'italic'}}>"{p.analisis}"</p>}
-              {/* Cuota + stake */}
               <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between'}}>
                 <div style={{flex:1}}>
-                  <Kicker>ACCESO</Kicker>
-                  <Mono style={{fontSize:12,fontWeight:600,display:'block',color:p.tipo_acceso==='premium'?C.accent2:C.positive}}>
-                    {(p.tipo_acceso||'—').toUpperCase()}
-                  </Mono>
-                  {p.stake&&<><Kicker style={{marginTop:4}}>STAKE</Kicker>
-                  <Mono style={{fontSize:12,fontWeight:600,display:'block'}}>{p.stake}<span style={{color:C.ink2}}>u</span></Mono></>}
+                  <Kicker>TIPO</Kicker>
+                  <Mono style={{fontSize:12,fontWeight:600,display:'block'}}>{p.tipo_apuesta||'—'}</Mono>
+                  {p.casa_apuestas&&<span style={{fontSize:10,color:C.ink2}}>{p.casa_apuestas}</span>}
                 </div>
                 <div style={{textAlign:'right'}}>
                   <Kicker>CUOTA</Kicker>
-                  <Mono style={{fontSize:28,fontWeight:500,display:'block',lineHeight:1,color:C.accent}}>
+                  <Mono style={{fontSize:24,fontWeight:500,display:'block',lineHeight:1}}>
                     {p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}
                   </Mono>
                 </div>
               </div>
-              {/* Profit si liquidado */}
-              {p.profit!=null&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px dashed ${C.border}`,textAlign:'right'}}>
-                <Mono style={{fontSize:13,fontWeight:600,color:parseFloat(p.profit)>=0?C.positive:C.negative}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:`1px dashed ${C.border}`}}>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  {p.tipo_acceso&&<><Kicker>ACCESO</Kicker><Mono style={{fontSize:11,fontWeight:700,color:ec}}}>{p.tipo_acceso}</Mono><div style={{width:1,height:8,background:C.borderStrong}}/></>}
+                  {p.stake&&<><Kicker>STAKE</Kicker><Mono style={{fontSize:11,fontWeight:600}}>{p.stake}<span style={{color:C.ink2}}>u</span></Mono></>}
+                </div>
+                {p.profit!=null&&<Mono style={{fontSize:12,fontWeight:600,color:parseFloat(p.profit)>=0?C.positive:C.negative}}>
                   {parseFloat(p.profit)>=0?'+':''}{parseFloat(p.profit).toFixed(2)}u
-                </Mono>
-              </div>}
+                </Mono>}
+              </div>
             </div>
           </div>
         </div>;
@@ -476,8 +464,8 @@ function InfoScreen({params,onTab}){
     <div style={{flexShrink:0}}>
       <NavHeader title={t.display_name||t.username||'Tipster'}/>
       <div style={{background:C.bg1,padding:'16px 16px 18px',textAlign:'center',borderBottom:`1px solid ${C.border}`}}>
-        <Avatar name={t.display_name||'?'} size={80} style={{margin:'0 auto 12px'}}/>
-        <div style={{width:80,height:80,margin:'0 auto 12px'}}><Avatar name={t.display_name||'?'} size={80}/></div>
+        <Avatar name={t.display_name||'?'} size={80} url={t.avatar_url}/>
+        
         <Display style={{fontSize:26,display:'block'}}>{(t.display_name||t.username||'TIPSTER').toUpperCase()}</Display>
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginTop:8}}>
           {t.is_verified&&<Kicker c={C.accent} style={{textTransform:'none',letterSpacing:0,fontSize:11}}>✓ Verificado TSAI</Kicker>}
@@ -641,7 +629,7 @@ function RankingScreen({onTab}){
               </div>
               <div style={{padding:'12px 6px',border:`1px solid ${ac}55`,borderRadius:12,background:isFirst?'rgba(251,191,36,0.05)':C.bg1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
                 {isFirst&&<span style={{fontSize:14}}>👑</span>}
-                <Avatar name={t.display_name||'?'} size={isFirst?48:36}/>
+                <Avatar name={t.display_name||'?'} size={isFirst?48:36} url={t.avatar_url}/>
                 <span style={{fontSize:isFirst?12:10,fontWeight:600,color:C.ink0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'90%'}}>{t.display_name||t.username}</span>
                 <Kicker style={{fontSize:8}}>{(t.sport_focus||['—'])[0]}</Kicker>
                 <Mono style={{fontSize:isFirst?15:12,fontWeight:700,color:ac}}>
@@ -657,7 +645,7 @@ function RankingScreen({onTab}){
           <div style={{display:'flex',flexDirection:'column',gap:6}}>
             {rest.map((t,i)=><Card key={t.id} onClick={()=>push('info',{tipster:t})} style={{display:'flex',alignItems:'center',gap:8,padding:10,cursor:'pointer'}}>
               <Mono style={{fontSize:11,color:C.ink2,fontWeight:600,width:18,textAlign:'center'}}>{i+4}</Mono>
-              <Avatar name={t.display_name||'?'} size={30}/>
+              <Avatar name={t.display_name||'?'} size={30} url={t.avatar_url}/>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:12,fontWeight:600,color:C.ink0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.display_name||t.username}</div>
                 <Kicker style={{fontSize:8}}>{(t.sport_focus||[]).join(' · ')||'Multi'} · {t.total_picks||0} picks</Kicker>
@@ -698,7 +686,7 @@ function MarketplaceScreen({onTab}){
             <div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(94,234,212,0.4)'}}><Kicker c={C.accent}>PREMIUM</Kicker></div>
           </div>
           <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:12}}>
-            <Avatar name={featured.display_name||'?'} size={46}/>
+            <Avatar name={featured.display_name||'?'} size={46} url={featured.avatar_url}/>
             <div style={{flex:1}}>
               <Display style={{fontSize:17,display:'block',lineHeight:1.1}}>{(featured.display_name||'TIPSTER').toUpperCase()}</Display>
               <Kicker>{featured.total_picks||0} picks · {featured.win_rate_pct?`${parseFloat(featured.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
@@ -727,7 +715,7 @@ function MarketplaceScreen({onTab}){
           {premium.map((t,i)=>{
             const col=colors[i%colors.length];
             return <Card key={t.id} onClick={()=>push('info',{tipster:t})} style={{padding:11,borderColor:`${col}55`,background:`${col}11`,cursor:'pointer'}}>
-              <Avatar name={t.display_name||'?'} size={32}/>
+              <Avatar name={t.display_name||'?'} size={32} url={t.avatar_url}/>
               <div style={{fontSize:12,fontWeight:600,color:C.ink0,marginTop:8,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.display_name||t.username}</div>
               <Kicker style={{fontSize:9,display:'block',marginTop:1}}>{(t.sport_focus||['—'])[0]}</Kicker>
               <div style={{display:'flex',justifyContent:'space-between',marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`}}>
@@ -801,29 +789,7 @@ function SettingsScreen({onTab}){
     <TabBar active="cuenta" onTab={onTab}/>
   </div>;
 }
-function ScannerScreen({onTab}){
-  const {session}=useAuth();
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',flexShrink:0}}>
-      <Kicker c={C.accent} style={{display:'block',marginBottom:3}}>TSAI · ADMIN</Kicker>
-      <Display style={{fontSize:24,display:'block'}}>SCANNER</Display>
-    </div>
-    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16,padding:24}}>
-      <div style={{fontSize:48}}>📸</div>
-      <Display style={{fontSize:18,textAlign:'center'}}>OCR Scanner</Display>
-      <p style={{fontSize:13,color:C.ink2,textAlign:'center',lineHeight:1.6}}>
-        Escanea boletos de Bet365 y Winamax directamente desde tu móvil
-      </p>
-      <a href="./ocr-scanner.html" style={{display:'flex',alignItems:'center',justifyContent:'center',
-        height:48,width:'100%',background:C.accent,color:C.accentInk,
-        borderRadius:999,fontWeight:700,fontSize:13,letterSpacing:.5,
-        textDecoration:'none',textTransform:'uppercase'}}>
-        ⚡ ABRIR SCANNER
-      </a>
-    </div>
-    <TabBar active="scanner" onTab={onTab}/>
-  </div>;
-}
+
 // ── Router ────────────────────────────────────────────────────────────────────
 function Router(){
   const {cur,reset}=useNav();
@@ -851,7 +817,7 @@ function Router(){
   if(cur.s==='stats') return <StatsScreen params={cur.p}/>;
 
   if(tab==='ranking') return <RankingScreen  onTab={onTab}/>;
-  if(tab==='scanner') return <ScannerScreen onTab={onTab}/>;
+  if(tab==='market')  return <MarketplaceScreen onTab={onTab}/>;
   if(tab==='cuenta')  return <SettingsScreen onTab={onTab}/>;
   return <HomeScreen onTab={onTab}/>;
 }
