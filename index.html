@@ -103,7 +103,7 @@ function usePicks(tipsterId){
   useEffect(()=>{
     if(!tipsterId){setLoading(false);return;}
     sb.from('boletos')
-      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado')
+      .select('id,casa_apuestas,cuota_total,tipo_apuesta,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado,nivel_confianza,confianza,analisis,imagen_url')
       .eq('tipster_id',tipsterId)
       .order('fecha_procesado',{ascending:false})
       .limit(15)
@@ -411,40 +411,47 @@ function ChatScreen({params,onTab}){
           <div style={{display:'flex',background:C.bg2,borderRadius:14,border:`1px solid ${estado==='ganado'?'rgba(52,211,153,0.3)':estado==='perdido'?'rgba(248,113,113,0.25)':C.border}`,overflow:'hidden'}}>
             <div style={{width:7,background:ec,flexShrink:0}}/>
             <div style={{flex:1,padding:14}}>
-              <div style={{display:'flex',alignItems:'center',marginBottom:7,gap:8}}>
-                <Kicker>{p.tipo_apuesta||'Apuesta'}</Kicker>
-                <div style={{flex:1}}/>
+              {/* Header: estado */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+                <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                  <Kicker c={p.tipo_apuesta==='live'?C.negative:C.ink2}>{p.tipo_apuesta||'—'}</Kicker>
+                  <Kicker c={ec}>{p.nivel_confianza||p.confianza||'—'}</Kicker>
+                </div>
                 <div style={{padding:'2px 7px',borderRadius:4,border:`1px solid ${ec}55`,background:`${ec}11`}}>
                   <Kicker c={ec} style={{fontSize:8}}>{estadoLabel[estado]||estado}</Kicker>
                 </div>
               </div>
-              {p.imagen_url&&<img src={p.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:10,display:'block'}} alt="boleto"/>}
-<Display style={{fontSize:15,display:'block',lineHeight:1.2,marginBottom:p.analisis?4:10}}>
-  {p.casa_apuestas||'Pick'}
-</Display>
-{p.analisis&&<p style={{fontSize:12,color:C.ink1,lineHeight:1.5,marginBottom:10}}>{p.analisis}</p>}
+              {/* Imagen del boleto */}
+              {p.imagen_url&&<img src={p.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:10,display:'block'}}/>}
+              {/* Casa */}
+              <Display style={{fontSize:14,display:'block',marginBottom:p.analisis?6:10}}>
+                {p.casa_apuestas||'Pick'}
+              </Display>
+              {/* Análisis */}
+              {p.analisis&&<p style={{fontSize:12,color:C.ink1,lineHeight:1.5,marginBottom:10,fontStyle:'italic'}}>"{p.analisis}"</p>}
+              {/* Cuota + stake */}
               <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between'}}>
                 <div style={{flex:1}}>
-  <Kicker>TIPO</Kicker>
-  <Mono style={{fontSize:12,fontWeight:600,display:'block'}}>{p.tipo_apuesta||'—'}</Mono>
-  {p.casa_apuestas&&<span style={{fontSize:10,color:C.ink2}}>{p.casa_apuestas}</span>}
-</div>
+                  <Kicker>ACCESO</Kicker>
+                  <Mono style={{fontSize:12,fontWeight:600,display:'block',color:p.tipo_acceso==='premium'?C.accent2:C.positive}}>
+                    {(p.tipo_acceso||'—').toUpperCase()}
+                  </Mono>
+                  {p.stake&&<><Kicker style={{marginTop:4}}>STAKE</Kicker>
+                  <Mono style={{fontSize:12,fontWeight:600,display:'block'}}>{p.stake}<span style={{color:C.ink2}}>u</span></Mono></>}
+                </div>
                 <div style={{textAlign:'right'}}>
                   <Kicker>CUOTA</Kicker>
-                  <Mono style={{fontSize:24,fontWeight:500,display:'block',lineHeight:1}}>
+                  <Mono style={{fontSize:28,fontWeight:500,display:'block',lineHeight:1,color:C.accent}}>
                     {p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}
                   </Mono>
                 </div>
               </div>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:`1px dashed ${C.border}`}}>
-                <div style={{display:'flex',alignItems:'center',gap:6}}>
-                  {p.tipo_acceso&&<><Kicker>ACCESO</Kicker><Mono style={{fontSize:11,fontWeight:700,color:ec}}>{p.tipo_acceso}</Mono><div style={{width:1,height:8,background:C.borderStrong}}/></>}
-                  {p.stake&&<><Kicker>STAKE</Kicker><Mono style={{fontSize:11,fontWeight:600}}>{p.stake}<span style={{color:C.ink2}}>u</span></Mono></>}
-                </div>
-                {p.profit!=null&&<Mono style={{fontSize:12,fontWeight:600,color:parseFloat(p.profit)>=0?C.positive:C.negative}}>
+              {/* Profit si liquidado */}
+              {p.profit!=null&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px dashed ${C.border}`,textAlign:'right'}}>
+                <Mono style={{fontSize:13,fontWeight:600,color:parseFloat(p.profit)>=0?C.positive:C.negative}}>
                   {parseFloat(p.profit)>=0?'+':''}{parseFloat(p.profit).toFixed(2)}u
-                </Mono>}
-              </div>
+                </Mono>
+              </div>}
             </div>
           </div>
         </div>;
