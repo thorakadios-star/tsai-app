@@ -433,7 +433,7 @@ function ChatScreen({params,onTab}){
               </div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:`1px dashed ${C.border}`}}>
                 <div style={{display:'flex',alignItems:'center',gap:6}}>
-                  {p.tipo_acceso&&<><Kicker>ACCESO</Kicker><Mono style={{fontSize:11,fontWeight:700,color:ec}}}>{p.tipo_acceso}</Mono><div style={{width:1,height:8,background:C.borderStrong}}/></>}
+                  {p.tipo_acceso&&<><Kicker>ACCESO</Kicker><Mono style={{fontSize:11,fontWeight:700,color:ec}}>{p.tipo_acceso}</Mono><div style={{width:1,height:8,background:C.borderStrong}}/></>}
                   {p.stake&&<><Kicker>STAKE</Kicker><Mono style={{fontSize:11,fontWeight:600}}>{p.stake}<span style={{color:C.ink2}}>u</span></Mono></>}
                 </div>
                 {p.profit!=null&&<Mono style={{fontSize:12,fontWeight:600,color:parseFloat(p.profit)>=0?C.positive:C.negative}}>
