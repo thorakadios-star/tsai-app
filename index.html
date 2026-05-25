@@ -393,6 +393,9 @@ function ChatScreen({params,onTab}){
         {t.is_verified&&<div style={{padding:'3px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)'}}>
           <Kicker c={C.accent}>Verificado</Kicker>
         </div>}
+        <a href="./ocr-scanner.html" style={{padding:'3px 10px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)',textDecoration:'none',display:'flex',alignItems:'center',gap:4}}>
+  <Kicker c={C.accent}>📸 PICK</Kicker>
+</a>
       </div>
       {/* Picks */}
       {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
