@@ -369,19 +369,111 @@ function HomeScreen({onTab}){
 }
 
 // ── CHAT (picks reales del tipster) ───────────────────────────────────────────
+// ── CHAT ─────────────────────────────────────────────────────────────────────
 function ChatScreen({params,onTab}){
   const {push}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
-  const {data:picks,loading}=usePicks(t.id);
+  const {data:picks,loading,refetch}=usePicks(t.id);
+  const [whoami,setWhoami]=useState(null); // {id, username, role, is_admin}
+  const [usuarios,setUsuarios]=useState([]);
+  const [showWho,setShowWho]=useState(true);
+  const [msg,setMsg]=useState('');
+  const [sending,setSending]=useState(false);
+  const [liquidando,setLiquidando]=useState(null); // pick id abierto
+
+  // Cargar usuarios para el selector
+  useEffect(()=>{
+    sb.from('users').select('id,username,role,is_admin').then(({data})=>setUsuarios(data||[]));
+  },[]);
+
+  // ¿Puede gestionar este canal?
+  const puedeGestionar = whoami && (
+    whoami.is_admin ||
+    (whoami.role==='tipster' && t.user_id && whoami.id===t.user_id)
+  );
+
+  // Liquidar pick
+  async function liquidar(pickId, resultado){
+    setLiquidando(null);
+    const {data:boleto}=await sb.from('boletos').select('stake,cuota_total,tipster_id,tipo_acceso,fecha_procesado').eq('id',pickId).single();
+    const stake=parseFloat(boleto.stake)||0;
+    const cuota=parseFloat(boleto.cuota_total)||0;
+    let profit=0;
+    if(resultado==='ganado') profit=Math.round((stake*cuota-stake)*100)/100;
+    else if(resultado==='perdido') profit=-stake;
+    await sb.from('boletos').update({estado:resultado,profit,settled_at:new Date().toISOString()}).eq('id',pickId);
+    // Actualizar stats
+    const {data:perfil}=await sb.from('tipsters_profiles').select('wins,losses,voids,total_picks,profit_units,total_staked').eq('id',boleto.tipster_id).single();
+    if(perfil){
+      const wins=perfil.wins+(resultado==='ganado'?1:0);
+      const losses=perfil.losses+(resultado==='perdido'?1:0);
+      const voids=perfil.voids+(resultado==='nulo'?1:0);
+      const profit_units=parseFloat(perfil.profit_units)+profit;
+      const total_staked=parseFloat(perfil.total_staked)+stake;
+      const win_rate_pct=perfil.total_picks>0?Math.round((wins/perfil.total_picks)*10000)/100:0;
+      const yield_pct=total_staked>0?Math.round((profit_units/total_staked)*10000)/100:0;
+      await sb.from('tipsters_profiles').update({wins,losses,voids,profit_units,total_staked,win_rate_pct,yield_pct,updated_at:new Date().toISOString()}).eq('id',boleto.tipster_id);
+    }
+    refetch();
+  }
+
+  // Enviar mensaje de texto
+  async function enviarMensaje(){
+    if(!msg.trim()||!whoami)return;
+    setSending(true);
+    // Buscar canal del tipster
+    const {data:canal}=await sb.from('canales').select('id').eq('tipster_id',t.id).limit(1).single();
+    if(canal){
+      await sb.from('mensajes').insert({
+        canal_id:canal.id,
+        tipster_id:t.id,
+        tipo:'texto',
+        contenido:msg.trim(),
+        created_at:new Date().toISOString(),
+      });
+    }
+    setMsg('');
+    setSending(false);
+  }
 
   const estadoConfig={
-    ganado:  {color:C.positive, icon:'🏆', label:'Ganado'},
-    perdido: {color:C.negative, icon:'❌', label:'Perdido'},
-    pendiente:{color:C.gold,   icon:'⏳', label:'Pendiente'},
-    nulo:    {color:C.ink2,    icon:'➖', label:'Nulo'},
-    en_curso:{color:C.accent,  icon:'🔴', label:'En curso'},
+    ganado:{color:C.positive,icon:'🏆',label:'Ganado'},
+    perdido:{color:C.negative,icon:'❌',label:'Perdido'},
+    pendiente:{color:C.gold,icon:'⏳',label:'Pendiente'},
+    nulo:{color:C.ink2,icon:'➖',label:'Nulo'},
+    en_curso:{color:C.accent,icon:'🔴',label:'En curso'},
   };
 
+  // ── Selector de identidad ─────────────────────────────────────────────────
+  if(showWho) return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
+    <NavHeader title={t.display_name||'Canal'}/>
+    <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',padding:24,gap:16}}>
+      <div style={{textAlign:'center',marginBottom:8}}>
+        <Avatar name={t.display_name||'?'} size={56} url={t.avatar_url}/>
+        <div style={{fontSize:16,fontWeight:700,color:C.ink0,marginTop:10}}>{t.display_name}</div>
+        <Kicker style={{marginTop:4}}>¿Quién eres?</Kicker>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {usuarios.map(u=><button key={u.id} onClick={()=>{setWhoami(u);setShowWho(false);}} style={{
+          display:'flex',alignItems:'center',gap:10,padding:'12px 14px',
+          background:C.bg2,border:`1px solid ${C.border}`,borderRadius:10,cursor:'pointer',
+        }}>
+          <Avatar name={u.username||'?'} size={32}/>
+          <div style={{flex:1,textAlign:'left'}}>
+            <div style={{fontSize:13,fontWeight:600,color:C.ink0}}>{u.username}</div>
+            <Kicker>{u.is_admin?'Admin':u.role}</Kicker>
+          </div>
+          {u.is_admin&&<Kicker c={C.accent}>★ Admin</Kicker>}
+        </button>)}
+        <button onClick={()=>{setWhoami(null);setShowWho(false);}} style={{
+          padding:'12px 14px',background:'transparent',border:`1px solid ${C.border}`,
+          borderRadius:10,cursor:'pointer',color:C.ink2,fontSize:12,
+        }}>Solo ver</button>
+      </div>
+    </div>
+  </div>;
+
+  // ── Chat principal ────────────────────────────────────────────────────────
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
     <NavHeader title={t.display_name||t.username||'Canal'}
       right={<button onClick={()=>push('info',{tipster:t})} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.4)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5}}>INFO →</button>}/>
@@ -396,10 +488,14 @@ function ChatScreen({params,onTab}){
         {t.is_verified&&<div style={{padding:'3px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)'}}>
           <Kicker c={C.accent}>Verificado</Kicker>
         </div>}
-        <a href="./ocr-scanner.html" style={{padding:'3px 10px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)',textDecoration:'none',display:'flex',alignItems:'center',gap:4}}>
+        {puedeGestionar&&<a href="./ocr-scanner.html" style={{padding:'3px 10px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)',textDecoration:'none',display:'flex',alignItems:'center',gap:4}}>
           <Kicker c={C.accent}>📸 PICK</Kicker>
-        </a>
+        </a>}
+        <button onClick={()=>setShowWho(true)} style={{padding:'3px 8px',borderRadius:4,background:C.bg3,border:`1px solid ${C.border}`,cursor:'pointer'}}>
+          <Kicker c={C.ink2}>{whoami?whoami.username:'?'}</Kicker>
+        </button>
       </div>
+
       {/* Picks */}
       {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
       {!loading&&picks.length===0&&<EmptyState icon="📭" title="Sin picks" sub="Este tipster aún no tiene picks registrados"/>}
@@ -411,43 +507,64 @@ function ChatScreen({params,onTab}){
         const isPremium=p.tipo_acceso==='premium';
         const profit=p.profit!=null?parseFloat(p.profit):null;
         const beneficio=profit!=null?profit:(p.stake&&p.cuota_total?Math.round((parseFloat(p.stake)*parseFloat(p.cuota_total)-parseFloat(p.stake))*100)/100:null);
+        const isPendiente=estado==='pendiente'||estado==='en_curso';
 
         return <div key={p.id} style={{marginBottom:16,animation:'fadeIn .25s ease'}}>
-          {/* Header row */}
+          {/* Header row con badge desplegable */}
           <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
             <span style={{fontSize:14}}>🎯</span>
             <span style={{fontSize:12,fontWeight:600,color:C.ink0,textTransform:'uppercase',letterSpacing:.5}}>Nuevo Pick</span>
+            {puedeGestionar&&isPendiente&&<div style={{marginLeft:'auto',position:'relative'}}>
+              <button onClick={()=>setLiquidando(liquidando===p.id?null:p.id)} style={{
+                padding:'2px 8px',borderRadius:4,background:C.bg3,
+                border:`1px solid ${C.border}`,cursor:'pointer',display:'flex',alignItems:'center',gap:4,
+              }}>
+                <Kicker c={C.ink1}>Liquidar</Kicker>
+                <span style={{fontSize:8,color:C.ink2}}>{liquidando===p.id?'▲':'▼'}</span>
+              </button>
+              {liquidando===p.id&&<div style={{
+                position:'absolute',right:0,top:'calc(100% + 4px)',
+                background:C.bg2,border:`1px solid ${C.border}`,borderRadius:8,
+                overflow:'hidden',zIndex:10,minWidth:120,
+              }}>
+                {[
+                  {r:'ganado',icon:'🏆',label:'Ganado',c:C.positive},
+                  {r:'perdido',icon:'❌',label:'Perdido',c:C.negative},
+                  {r:'nulo',icon:'➖',label:'Nulo',c:C.ink2},
+                ].map(o=><button key={o.r} onClick={()=>liquidar(p.id,o.r)} style={{
+                  display:'flex',alignItems:'center',gap:8,width:'100%',
+                  padding:'9px 12px',background:'none',border:'none',
+                  borderBottom:`1px solid ${C.border}`,cursor:'pointer',
+                }}>
+                  <span style={{fontSize:12}}>{o.icon}</span>
+                  <Kicker c={o.c}>{o.label}</Kicker>
+                </button>)}
+              </div>}
+            </div>}
           </div>
 
           {/* Card */}
           <div style={{background:C.bg1,borderRadius:14,overflow:'hidden',border:`1px solid ${estado==='ganado'?'rgba(52,211,153,0.3)':estado==='perdido'?'rgba(248,113,113,0.25)':C.border}`}}>
-            {/* Accent bar */}
             <div style={{height:4,background:`linear-gradient(90deg,${C.accent},${C.accent2})`}}/>
             <div style={{padding:14}}>
-
               {/* Meta badges */}
               <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
-                {/* Tipo */}
                 <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isLive?'rgba(248,113,113,0.4)':'rgba(255,255,255,0.2)'}`,background:isLive?'rgba(248,113,113,0.08)':'rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:4}}>
                   <span style={{fontSize:9}}>{isLive?'🔴':'⏱'}</span>
                   <Kicker c={isLive?C.negative:C.ink0}>{isLive?'Live':'Pre-Partido'}</Kicker>
                 </div>
-                {/* Casa */}
                 {p.casa_apuestas&&<div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.08)',display:'flex',alignItems:'center',gap:4}}>
                   <span style={{fontSize:9}}>🏦</span>
                   <Kicker c={C.accent}>{p.casa_apuestas}</Kicker>
                 </div>}
-                {/* Timestamp */}
                 <div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:4}}>
                   <span style={{fontSize:9}}>🕒</span>
                   <Kicker c={C.ink0}>{p.fecha_procesado?new Date(p.fecha_procesado).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</Kicker>
                 </div>
-                {/* Acceso */}
                 <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isPremium?'rgba(168,85,247,0.4)':'rgba(52,211,153,0.4)'}`,background:isPremium?'rgba(168,85,247,0.08)':'rgba(52,211,153,0.08)',display:'flex',alignItems:'center',gap:4}}>
                   <span style={{fontSize:9}}>{isPremium?'🔒':'🔓'}</span>
                   <Kicker c={isPremium?C.accent2:C.positive}>{isPremium?'Premium':'Free'}</Kicker>
                 </div>
-                {/* Estado */}
                 <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${ec}66`,background:`${ec}11`,display:'flex',alignItems:'center',gap:4}}>
                   <span style={{fontSize:9}}>{cfg.icon}</span>
                   <Kicker c={ec}>{cfg.label}</Kicker>
@@ -460,9 +577,9 @@ function ChatScreen({params,onTab}){
               {/* Stats grid */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:1,background:'rgba(255,255,255,0.08)',borderRadius:8,overflow:'hidden',marginBottom:12}}>
                 {[
-                  {label:'Cuota', val:`@${p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}`, color:C.accent},
-                  {label:'Stake', val:p.stake?`${p.stake}u`:'—', color:C.ink0},
-                  {label:'Beneficio', val:beneficio!=null?`${beneficio>=0?'+':''}${beneficio.toFixed(2)}u`:'—', color:beneficio!=null&&beneficio>=0?C.positive:beneficio!=null?C.negative:C.ink2},
+                  {label:'Cuota',val:`@${p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}`,color:C.accent},
+                  {label:'Stake',val:p.stake?`${p.stake}u`:'—',color:C.ink0},
+                  {label:'Beneficio',val:beneficio!=null?`${beneficio>=0?'+':''}${beneficio.toFixed(2)}u`:'—',color:beneficio!=null&&beneficio>=0?C.positive:beneficio!=null?C.negative:C.ink2},
                 ].map(s=><div key={s.label} style={{background:C.bg2,padding:'10px 8px',textAlign:'center'}}>
                   <Kicker style={{display:'block',marginBottom:4}}>{s.label}</Kicker>
                   <Mono style={{fontSize:16,fontWeight:600,color:s.color}}>{s.val}</Mono>
@@ -474,18 +591,9 @@ function ChatScreen({params,onTab}){
 
               {/* Trust badges */}
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:6}}>
-                <div style={{display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>✅</span>
-                  <Kicker c={C.ink0} style={{fontSize:8}}>Tipster verificado</Kicker>
-                </div>
-                <div style={{display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>🕓</span>
-                  <Kicker c={C.ink0} style={{fontSize:8}}>Timestamp</Kicker>
-                </div>
-                <div style={{display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>🤖</span>
-                  <Kicker c={C.ink0} style={{fontSize:8}}>Auditado TSAI</Kicker>
-                </div>
+                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>✅</span><Kicker c={C.ink0} style={{fontSize:8}}>Tipster verificado</Kicker></div>
+                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>🕓</span><Kicker c={C.ink0} style={{fontSize:8}}>Timestamp</Kicker></div>
+                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>🤖</span><Kicker c={C.ink0} style={{fontSize:8}}>Auditado TSAI</Kicker></div>
               </div>
 
               {/* Análisis */}
@@ -496,19 +604,33 @@ function ChatScreen({params,onTab}){
                 </div>
                 <p style={{fontSize:11,color:C.ink0,lineHeight:1.6,margin:0}}>{p.analisis}</p>
               </div>}
-
             </div>
           </div>
         </div>;
       })}
     </div>
+
+    {/* Input chat */}
     <div style={{padding:'10px 14px 20px',borderTop:`1px solid ${C.border}`,background:C.bg0,display:'flex',gap:8,flexShrink:0}}>
-      <div style={{flex:1,height:36,background:C.bg2,borderRadius:999,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 14px'}}>
-        <span style={{fontSize:12,color:C.ink2}}>Comentar…</span>
-      </div>
-      <div style={{width:36,height:36,borderRadius:18,background:C.accent,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
-        <span style={{color:C.accentInk,fontSize:14}}>↑</span>
-      </div>
+      {puedeGestionar
+        ?<>
+          <input value={msg} onChange={e=>setMsg(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&enviarMensaje()}
+            placeholder="Escribe un mensaje…"
+            style={{flex:1,height:36,background:C.bg2,borderRadius:999,border:`1px solid ${C.border}`,
+              padding:'0 14px',fontSize:12,color:C.ink0,outline:'none'}}/>
+          <button onClick={enviarMensaje} disabled={sending||!msg.trim()} style={{
+            width:36,height:36,borderRadius:18,background:C.accent,border:'none',
+            display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+            opacity:sending||!msg.trim()?0.4:1,
+          }}>
+            <span style={{color:C.accentInk,fontSize:14}}>↑</span>
+          </button>
+        </>
+        :<div style={{flex:1,height:36,background:C.bg2,borderRadius:999,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 14px'}}>
+          <span style={{fontSize:12,color:C.ink2}}>Solo lectura — identifícate para escribir</span>
+        </div>
+      }
     </div>
   </div>;
 }
