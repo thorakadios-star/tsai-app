@@ -103,7 +103,7 @@ function usePicks(tipsterId){
   useEffect(()=>{
     if(!tipsterId){setLoading(false);return;}
     sb.from('boletos')
-      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado')
+      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado,nivel_confianza,confianza,analisis,imagen_url')
       .eq('tipster_id',tipsterId)
       .order('fecha_procesado',{ascending:false})
       .limit(15)
