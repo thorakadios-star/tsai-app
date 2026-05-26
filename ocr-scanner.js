@@ -4,22 +4,24 @@ const CUOTA_RE = /(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/g;
 
 // ── Google Vision ─────────────────────────────────────────────────────────────
 async function extractTextFromImage(imageBase64) {
-  const res = await fetch(
-    `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        requests: [{
-          image: { content: imageBase64 },
-          features: [{ type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }],
-        }],
-      }),
-    }
-  );
-  if (!res.ok) throw new Error(`Vision API: ${res.status}`);
+  const formData = new FormData();
+  formData.append('base64Image', 'data:image/jpeg;base64,' + imageBase64);
+  formData.append('apikey', 'K86282425588957');
+  formData.append('language', 'spa');
+  formData.append('isOverlayRequired', 'false');
+  formData.append('OCREngine', '2');
+
+  const res = await fetch('https://api.ocr.space/parse/image', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error(`OCR.space error: ${res.status}`);
   const data = await res.json();
-  const text = data.responses && data.responses[0] && data.responses[0].fullTextAnnotation && data.responses[0].fullTextAnnotation.text;
+
+  if (data.IsErroredOnProcessing) throw new Error(data.ErrorMessage || 'Error OCR');
+
+  const text = data.ParsedResults && data.ParsedResults[0] && data.ParsedResults[0].ParsedText;
   if (!text) throw new Error('No se detectó texto en la imagen');
   return text.trim();
 }
