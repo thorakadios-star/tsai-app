@@ -207,10 +207,10 @@ function SplashScreen(){
       </div>
     </div>
     <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      <BtnPrimary onClick={login}>COMENZAR — ES GRATIS</BtnPrimary>
+      <BtnPrimary onClick={login}>— COMENZAR A GANAR —</BtnPrimary>
       <button onClick={()=>push('login')} style={{background:'none',border:'none',cursor:'pointer',padding:8}}>
         <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,textTransform:'uppercase',letterSpacing:1,color:C.ink1,textAlign:'center'}}>
-          Ya tengo cuenta · <span style={{color:C.accent}}>Iniciar sesión</span>
+          COMING · <span style={{color:C.accent}}>SOON</span>
         </p>
       </button>
     </div>
@@ -261,9 +261,9 @@ const ECO=[
   {title:'Auditoría AI',sub:'Motor central',color:C.accent,bg:'rgba(94,234,212,0.07)',badge:'MOTOR'},
   {title:'Academia Pro',sub:'Gestión y psicología',color:C.accent2,bg:'rgba(168,85,247,0.07)'},
   {title:'Conexiones α',sub:'Networking · Real time',color:C.accent3,bg:'rgba(59,130,246,0.07)'},
-  {title:'Marketplace',sub:'Pronósticos del 1%',color:C.accent4,bg:'rgba(52,211,153,0.07)'},
+  {title:'Alertas en vivo',sub:'Donde quieras',color:C.accent4,bg:'rgba(52,211,153,0.07)'},
 ];
-const SPORTS=['Todos','Fútbol','NBA','MLB','Tenis','UFC'];
+const SPORTS=['Todos','Fútbol','Basket','Tenis'];
 
 function HomeScreen({onTab}){
   const {push}=useNav();
