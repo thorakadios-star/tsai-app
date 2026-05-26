@@ -2,7 +2,7 @@
 // Responsabilidad única: extraer la cuota de una imagen de boleto
 const CUOTA_RE = /(1\.[0-9]{2,3}|[2-9]\.[0-9]{2})/g;
 
-// ── Google Vision ─────────────────────────────────────────────────────────────
+// ── OCR SPACE ─────────────────────────────────────────────────────────────
 async function extractTextFromImage(imageBase64) {
   const formData = new FormData();
   formData.append('base64Image', 'data:image/jpeg;base64,' + imageBase64);
