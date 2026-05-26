@@ -100,19 +100,17 @@ function useTipsters(){
 function usePicks(tipsterId){
   const [data,setData]=useState([]);
   const [loading,setLoading]=useState(true);
-  useEffect(()=>{
+  const fetch=useCallback(()=>{
     if(!tipsterId){setLoading(false);return;}
     sb.from('boletos')
       .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado,nivel_confianza,confianza,analisis,imagen_url')
       .eq('tipster_id',tipsterId)
       .order('fecha_procesado',{ascending:false})
       .limit(15)
-      .then(({data,error})=>{
-        if(!error)setData(data||[]);
-        setLoading(false);
-      });
+      .then(({data,error})=>{if(!error)setData(data||[]);setLoading(false);});
   },[tipsterId]);
-  return {data,loading};
+  useEffect(()=>{fetch();},[fetch]);
+  return {data,loading,refetch:fetch};
 }
 
 function useDailyStats(tipsterId){
