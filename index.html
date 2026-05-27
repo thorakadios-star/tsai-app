@@ -381,23 +381,17 @@ function ChatScreen({params,onTab}){
   const {push}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
   const {data:picks,loading,refetch}=usePicks(t.id);
-  const [whoami,setWhoami]=useState(null); // {id, username, role, is_admin}
-  const [usuarios,setUsuarios]=useState([]);
-  const [showWho,setShowWho]=useState(true);
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
   const [liquidando,setLiquidando]=useState(null); // pick id abierto
 
   // Cargar usuarios para el selector
-  useEffect(()=>{
-    sb.from('users').select('id,username,role,is_admin').then(({data})=>setUsuarios(data||[]));
-  },[]);
 
   // ¿Puede gestionar este canal?
-  const puedeGestionar = whoami && (
-    whoami.is_admin ||
-    (whoami.role==='tipster' && t.user_id && whoami.id===t.user_id)
-  );
+  const {session}=useAuth();
+const esTipster=session?.user?.is_admin||session?.user?.role==='tipster';
+const esApostador=session?.user?.role==='apostador';
+const puedeGestionar=esTipster;
 
   // Liquidar pick
   async function liquidar(pickId, resultado){
