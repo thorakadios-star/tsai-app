@@ -419,7 +419,7 @@ const puedeGestionar=esTipster;
 
   // Enviar mensaje de texto
   async function enviarMensaje(){
-    if(!msg.trim()||!whoami)return;
+    if(!msg.trim()||!puedeGestionar)return;
     setSending(true);
     // Buscar canal del tipster
     const {data:canal}=await sb.from('canales').select('id').eq('tipster_id',t.id).limit(1).single();
@@ -464,9 +464,6 @@ const puedeGestionar=esTipster;
         {puedeGestionar&&<a href="./ocr-scanner.html" style={{padding:'3px 10px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)',textDecoration:'none',display:'flex',alignItems:'center',gap:4}}>
           <Kicker c={C.accent}>📸 PICK</Kicker>
         </a>}
-        <button onClick={()=>setShowWho(true)} style={{padding:'3px 8px',borderRadius:4,background:C.bg3,border:`1px solid ${C.border}`,cursor:'pointer'}}>
-          <Kicker c={C.ink2}>{whoami?whoami.username:'?'}</Kicker>
-        </button>
       </div>
 
       {/* Picks */}
