@@ -176,19 +176,38 @@ function TabBar({active,onTab}){
 
 // ── SPLASH ────────────────────────────────────────────────────────────────────
 function SplashScreen(){
-  const {push}=useNav();
   const {setSession}=useAuth();
-  const login=()=>setSession({user:{id:'mock',email:'user@tsai.app'}});
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',padding:'80px 28px 40px',overflow:'auto'}}>
-    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:20}}>
-      <div style={{fontSize:8,color:'rgba(234,242,255,.4)',letterSpacing:2,textTransform:'uppercase',padding:'4px 12px',border:'1px solid rgba(94,234,212,.2)',borderRadius:999}}>PRONÓSTICOS · DATOS REALES</div>
+  const [showModal,setShowModal]=useState(false);
+  const [pass,setPass]=useState('');
+  const [error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const entrarApostador=()=>setSession({user:{id:'apostador',role:'apostador'}});
+
+  const loginTipster=async()=>{
+    setLoading(true);setError('');
+    const {data,error}=await sb.from('users')
+      .select('id,username,role,is_admin,password')
+      .eq('username','truestats')
+      .eq('password',pass)
+      .single();
+    setLoading(false);
+    if(error||!data){setError('Contraseña incorrecta');return;}
+    setSession({user:{id:data.id,username:data.username,role:data.role,is_admin:data.is_admin}});
+  };
+
+  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',padding:'32px 24px 36px',overflow:'auto'}}>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingTop:8,paddingBottom:8}}>
+      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(234,242,255,.35)',letterSpacing:2,textTransform:'uppercase',textAlign:'center'}}>
+        PRONÓSTICOS · DATOS REALES · STATS VERIFICADAS
+      </p>
       <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:80,height:80,objectFit:'contain'}}/>
       <div style={{textAlign:'center'}}>
         <Display style={{fontSize:44,lineHeight:.95,display:'block'}}>TRUE <span style={{color:C.accent}}>STATS</span></Display>
         <Display style={{fontSize:18,color:C.ink1,fontWeight:500,letterSpacing:4,display:'block',marginTop:6}}>AI</Display>
       </div>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,textTransform:'uppercase',letterSpacing:1.5,color:C.ink1,textAlign:'center'}}>
-        La <span style={{color:C.accent}}>verdad</span> detrás de cada <span style={{color:C.accent}}>pick</span>
+      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,textTransform:'uppercase',letterSpacing:2,color:C.ink1,textAlign:'center'}}>
+        LA <span style={{color:C.accent}}>VERDAD</span> DETRÁS DE CADA <span style={{color:C.accent}}>PICK</span>
       </p>
       <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center'}}>
         {['✓ Verificado','⏱ Timestamp','🛡 Inmutable','⚡ Auditado'].map(l=>
@@ -198,54 +217,50 @@ function SplashScreen(){
         )}
       </div>
     </div>
-    <div style={{display:'flex',flexDirection:'column',gap:10}}>
-      <BtnPrimary onClick={login} style={{background:C.positive,color:'#04111C'}}>COMENZAR A GANAR</BtnPrimary>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-        <button onClick={login} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>📊 Soy Tipster</button>
-        <button onClick={login} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>🎯 Soy Apostador</button>
+
+    <div style={{display:'flex',flexDirection:'column',gap:14,paddingBottom:8}}>
+      <BtnPrimary onClick={()=>setShowModal(true)} style={{background:C.positive,color:'#04111C'}}>COMENZAR A GANAR</BtnPrimary>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+        <button onClick={()=>setShowModal(true)} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>📊 Soy Tipster</button>
+        <button onClick={entrarApostador} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>🎯 Soy Apostador</button>
       </div>
     </div>
+
+    {/* Modal login tipster */}
+    {showModal&&<div style={{position:'absolute',inset:0,background:'rgba(6,10,24,0.92)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,zIndex:50}}>
+      <div style={{background:C.bg1,borderRadius:16,border:`1px solid ${C.border}`,padding:24,width:'100%',maxWidth:320}}>
+        <Display style={{fontSize:18,display:'block',marginBottom:4}}>Acceso Tipster</Display>
+        <Kicker style={{display:'block',marginBottom:20}}>Introduce tu contraseña</Kicker>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'flex',flexDirection:'column',gap:5}}>
+            <Kicker>USUARIO</Kicker>
+            <div style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,padding:'0 14px',display:'flex',alignItems:'center'}}>
+              <Mono style={{fontSize:13,color:C.accent}}>truestats</Mono>
+            </div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:5}}>
+            <Kicker>CONTRASEÑA</Kicker>
+            <input
+              type="password"
+              value={pass}
+              onChange={e=>setPass(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&loginTipster()}
+              placeholder="••••"
+              style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,padding:'0 14px',fontSize:18,color:C.ink0,outline:'none',letterSpacing:4}}
+            />
+          </div>
+          {error&&<p style={{fontSize:11,color:C.negative,textAlign:'center'}}>{error}</p>}
+          <BtnPrimary onClick={loginTipster} style={{marginTop:4,opacity:loading?.6:1}}>
+            {loading?'Verificando…':'ENTRAR'}
+          </BtnPrimary>
+          <button onClick={()=>{setShowModal(false);setPass('');setError('');}} style={{background:'none',border:'none',cursor:'pointer',padding:8}}>
+            <Kicker style={{textAlign:'center',display:'block'}}>Cancelar</Kicker>
+          </button>
+        </div>
+      </div>
+    </div>}
   </div>;
 }
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
-function LoginScreen(){
-  const {pop}=useNav();
-  const {setSession}=useAuth();
-  const [email,setEmail]=useState('');
-  const [pass,setPass]=useState('');
-  const [loading,setLoading]=useState(false);
-  const [error,setError]=useState(null);
-
-  const login=async()=>{
-    setLoading(true);setError(null);
-    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error){setError(error.message);setLoading(false);}
-    else setSession(data.session);
-  };
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title="INICIAR SESIÓN"/>
-    <div style={{flex:1,padding:24,display:'flex',flexDirection:'column',justifyContent:'center',gap:16}}>
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        <Kicker>EMAIL</Kicker>
-        <input value={email} onChange={e=>setEmail(e.target.value)}
-          style={{height:44,background:C.bg2,borderRadius:10,border:`1px solid ${C.borderStrong}`,padding:'0 14px',fontSize:13,color:C.ink0,outline:'none'}}
-          placeholder="tu@email.com" type="email"/>
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        <Kicker>CONTRASEÑA</Kicker>
-        <input value={pass} onChange={e=>setPass(e.target.value)}
-          style={{height:44,background:C.bg2,borderRadius:10,border:`1px solid ${C.borderStrong}`,padding:'0 14px',fontSize:13,color:C.ink0,outline:'none'}}
-          placeholder="••••••••" type="password"/>
-      </div>
-      {error&&<p style={{fontSize:11,color:C.negative,textAlign:'center'}}>{error}</p>}
-      <BtnPrimary onClick={login} style={{marginTop:8,opacity:loading?.6:1}}>
-        {loading?<Spinner/>:'Entrar'}
-      </BtnPrimary>
-      <BtnGhost onClick={pop}>Volver</BtnGhost>
-    </div>
-  </div>;
-}
-
 // ── HOME ──────────────────────────────────────────────────────────────────────
 const ECO=[
   {title:'Auditoría AI',sub:'Motor central',color:C.accent,bg:'rgba(94,234,212,0.07)',badge:'MOTOR'},
