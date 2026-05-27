@@ -68,12 +68,7 @@ const useNav=()=>useContext(NavCtx);
 const AuthCtx=createContext(null);
 function AuthProvider({children}){
   const [session,setSession]=useState(null);
-  const [loading,setLoading]=useState(true);
-  useEffect(()=>{
-    sb.auth.getSession().then(({data:{session}})=>{setSession(session);setLoading(false);});
-    const {data:{subscription}}=sb.auth.onAuthStateChange((_,s)=>setSession(s));
-    return ()=>subscription.unsubscribe();
-  },[]);
+  const [loading,setLoading]=useState(false);
   return <AuthCtx.Provider value={{session,setSession,loading}}>{children}</AuthCtx.Provider>;
 }
 const useAuth=()=>useContext(AuthCtx);
@@ -972,12 +967,10 @@ function Router(){
   const {session,loading}=useAuth();
   const [tab,setTab]=useState('home');
 
-  useEffect(()=>{
-    if(!loading){
-      if(!session)reset('splash');
-      else reset('main');
-    }
-  },[session,loading]);
+useEffect(()=>{
+  if(!session)reset('splash');
+  else reset('main');
+},[session]);
 
   if(loading)return <div style={{height:'100%',background:C.bg0,display:'flex',alignItems:'center',justifyContent:'center'}}><Spinner/></div>;
 
