@@ -184,18 +184,16 @@ function SplashScreen(){
   const {push}=useNav();
   const {setSession}=useAuth();
   const login=()=>setSession({user:{id:'mock',email:'user@tsai.app'}});
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',padding:'32px 24px 36px',overflow:'auto'}}>
-    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingTop:8,paddingBottom:8}}>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(234,242,255,.35)',letterSpacing:2,textTransform:'uppercase',textAlign:'center'}}>
-        PRONÓSTICOS · DATOS REALES · STATS VERIFICADAS
-      </p>
+  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',padding:'80px 28px 40px',overflow:'auto'}}>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:20}}>
+      <div style={{fontSize:8,color:'rgba(234,242,255,.4)',letterSpacing:2,textTransform:'uppercase',padding:'4px 12px',border:'1px solid rgba(94,234,212,.2)',borderRadius:999}}>PRONÓSTICOS · DATOS REALES</div>
       <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:80,height:80,objectFit:'contain'}}/>
       <div style={{textAlign:'center'}}>
         <Display style={{fontSize:44,lineHeight:.95,display:'block'}}>TRUE <span style={{color:C.accent}}>STATS</span></Display>
         <Display style={{fontSize:18,color:C.ink1,fontWeight:500,letterSpacing:4,display:'block',marginTop:6}}>AI</Display>
       </div>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,textTransform:'uppercase',letterSpacing:2,color:C.ink1,textAlign:'center'}}>
-        LA <span style={{color:C.accent}}>VERDAD</span> DETRÁS DE CADA <span style={{color:C.accent}}>PICK</span>
+      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,textTransform:'uppercase',letterSpacing:1.5,color:C.ink1,textAlign:'center'}}>
+        La <span style={{color:C.accent}}>verdad</span> detrás de cada <span style={{color:C.accent}}>pick</span>
       </p>
       <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center'}}>
         {['✓ Verificado','⏱ Timestamp','🛡 Inmutable','⚡ Auditado'].map(l=>
@@ -205,9 +203,9 @@ function SplashScreen(){
         )}
       </div>
     </div>
-    <div style={{display:'flex',flexDirection:'column',gap:14,paddingBottom:8}}>
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
       <BtnPrimary onClick={login} style={{background:C.positive,color:'#04111C'}}>COMENZAR A GANAR</BtnPrimary>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
         <button onClick={login} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>📊 Soy Tipster</button>
         <button onClick={login} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>🎯 Soy Apostador</button>
       </div>
