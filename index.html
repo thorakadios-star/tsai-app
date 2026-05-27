@@ -446,33 +446,6 @@ const puedeGestionar=esTipster;
   };
 
   // ── Selector de identidad ─────────────────────────────────────────────────
-  if(showWho) return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title={t.display_name||'Canal'}/>
-    <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',padding:24,gap:16}}>
-      <div style={{textAlign:'center',marginBottom:8}}>
-        <Avatar name={t.display_name||'?'} size={56} url={t.avatar_url}/>
-        <div style={{fontSize:16,fontWeight:700,color:C.ink0,marginTop:10}}>{t.display_name}</div>
-        <Kicker style={{marginTop:4}}>¿Quién eres?</Kicker>
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:8}}>
-        {usuarios.map(u=><button key={u.id} onClick={()=>{setWhoami(u);setShowWho(false);}} style={{
-          display:'flex',alignItems:'center',gap:10,padding:'12px 14px',
-          background:C.bg2,border:`1px solid ${C.border}`,borderRadius:10,cursor:'pointer',
-        }}>
-          <Avatar name={u.username||'?'} size={32}/>
-          <div style={{flex:1,textAlign:'left'}}>
-            <div style={{fontSize:13,fontWeight:600,color:C.ink0}}>{u.username}</div>
-            <Kicker>{u.is_admin?'Admin':u.role}</Kicker>
-          </div>
-          {u.is_admin&&<Kicker c={C.accent}>★ Admin</Kicker>}
-        </button>)}
-        <button onClick={()=>{setWhoami(null);setShowWho(false);}} style={{
-          padding:'12px 14px',background:'transparent',border:`1px solid ${C.border}`,
-          borderRadius:10,cursor:'pointer',color:C.ink2,fontSize:12,
-        }}>Solo ver</button>
-      </div>
-    </div>
-  </div>;
 
   // ── Chat principal ────────────────────────────────────────────────────────
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
