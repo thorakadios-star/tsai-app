@@ -412,7 +412,7 @@ async function liquidar(pickId, resultado){
     p_stake:stake,
     p_profit:profit,
   });
-
+console.log('RPC result:', rpcResult);
   // Upsert stats diarias
   const fecha=new Date().toISOString().split('T')[0];
   const cat=boleto.tipo_acceso==='premium'?'premium':'free';
