@@ -122,6 +122,23 @@ function useDailyStats(tipsterId){
   return data;
 }
 
+function useMensajes(tipsterId){
+  const [data,setData]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const fetch=useCallback(()=>{
+    if(!tipsterId){setLoading(false);return;}
+    sb.from('mensajes')
+      .select('id,contenido,tipo,created_at,tipster_id')
+      .eq('tipster_id',tipsterId)
+      .eq('tipo','texto')
+      .order('created_at',{ascending:false})
+      .limit(30)
+      .then(({data,error})=>{if(!error)setData(data||[]);setLoading(false);});
+  },[tipsterId]);
+  useEffect(()=>{fetch();},[fetch]);
+  return {data,loading,refetch:fetch};
+}
+
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 function Avatar({name='?',size=40,url=null}){
   if(url) return <img src={url} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
@@ -380,6 +397,7 @@ function ChatScreen({params,onTab}){
   const {push}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
   const {data:picks,loading,refetch}=usePicks(t.id);
+  const {data:mensajes,refetch:refetchMensajes}=useMensajes(t.id);
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
   const [liquidando,setLiquidando]=useState(null); // pick id abierto
@@ -460,6 +478,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
     }
     setMsg('');
     setSending(false);
+    refetchMensajes();
   }
 
   const estadoConfig={
@@ -492,11 +511,24 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         </a>}
       </div>
 
-      {/* Picks */}
+      {/* Picks + Mensajes mezclados */}
       {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
-      {!loading&&picks.length===0&&<EmptyState icon="📭" title="Sin picks" sub="Este tipster aún no tiene picks registrados"/>}
-      {picks.map(p=>{
-        const estado=p.estado||'pendiente';
+      {!loading&&picks.length===0&&mensajes.length===0&&<EmptyState icon="📭" title="Sin actividad" sub="Este tipster aún no tiene picks ni mensajes"/>}
+      {[...picks.map(p=>({...p,_tipo:'pick',_fecha:p.fecha_procesado})),
+        ...mensajes.map(m=>({...m,_tipo:'texto',_fecha:m.created_at}))]
+        .sort((a,b)=>new Date(a._fecha)-new Date(b._fecha))
+        .map(item=>{
+          if(item._tipo==='texto') return <div key={item.id} style={{marginBottom:10,animation:'fadeIn .25s ease'}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+              <Avatar name={t.display_name||'?'} size={22} url={t.avatar_url}/>
+              <Kicker c={C.ink3}>{new Date(item.created_at).toLocaleDateString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</Kicker>
+            </div>
+            <div style={{background:C.bg2,borderRadius:10,padding:'10px 12px',maxWidth:'85%',marginLeft:28}}>
+              <p style={{fontSize:13,color:C.ink0,lineHeight:1.5,margin:0}}>{item.contenido}</p>
+            </div>
+          </div>;
+          const p=item;
+          const estado=p.estado||'pendiente';
         const cfg=estadoConfig[estado]||estadoConfig.pendiente;
         const ec=cfg.color;
         const isLive=p.tipo_apuesta==='live';
