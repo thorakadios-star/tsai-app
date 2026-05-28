@@ -725,7 +725,7 @@ function StatsScreen({params}){
             {(()=>{
               const vals=dailyStats.map(d=>parseFloat(d.profit_units||0));
               const min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
-              const pts=vals.map((v,i)=>`${(i/(vals.length-1))*300},${70-((v-min)/range)*60}`);
+              const pts=vals.map((v,i)=>`${vals.length>1?(i/(vals.length-1))*300:150},${70-((v-min)/range)*60}`);
               const path=`M${pts.join(' L')}`;
               const area=`${path} L300,80 L0,80 Z`;
               return <>
