@@ -406,13 +406,13 @@ async function liquidar(pickId, resultado){
   await sb.from('boletos').update({estado:resultado,profit,settled_at:new Date().toISOString()}).eq('id',pickId);
 
   // Actualizar stats globales via RPC
-  await sb.rpc('actualizar_stats_tipster',{
+const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
     p_tipster_id:boleto.tipster_id,
     p_resultado:resultado,
     p_stake:stake,
     p_profit:profit,
   });
-console.log('RPC result:', rpcResult);
+  console.log('RPC result:', rpcData, rpcError);
   // Upsert stats diarias
   const fecha=new Date().toISOString().split('T')[0];
   const cat=boleto.tipo_acceso==='premium'?'premium':'free';
