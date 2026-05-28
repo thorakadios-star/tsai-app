@@ -215,28 +215,30 @@ function SplashScreen(){
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',padding:'32px 24px 36px',overflow:'auto'}}>
     <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',paddingTop:8,paddingBottom:8}}>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(234,242,255,.35)',letterSpacing:2,textTransform:'uppercase',textAlign:'center'}}>
-        PRONÓSTICOS · DATOS REALES · STATS VERIFICADAS
+      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:C.accent,letterSpacing:2,textTransform:'uppercase',textAlign:'center'}}>
+        TSAI · TRUESTATS AI · V0.7
       </p>
-      <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:80,height:80,objectFit:'contain'}}/>
-      <div style={{textAlign:'center'}}>
-        <Display style={{fontSize:44,lineHeight:.95,display:'block'}}>TRUE <span style={{color:C.accent}}>STATS</span></Display>
-        <Display style={{fontSize:18,color:C.ink1,fontWeight:500,letterSpacing:4,display:'block',marginTop:6}}>AI</Display>
+      <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:96,height:96,objectFit:'contain'}}/>
+      <div style={{textAlign:'center',lineHeight:1}}>
+        <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:44,textTransform:'uppercase',letterSpacing:-.5,color:C.ink0}}>TRUE </span>
+        <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:44,textTransform:'uppercase',letterSpacing:-.5,color:C.accent}}>STATS</span>
+        <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:22,textTransform:'uppercase',letterSpacing:2,color:C.accent,marginLeft:4}}>AI</span>
       </div>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,textTransform:'uppercase',letterSpacing:2,color:C.ink1,textAlign:'center'}}>
+      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,textTransform:'uppercase',letterSpacing:1.5,color:C.ink0,textAlign:'center',marginTop:-14}}>
         LA <span style={{color:C.accent}}>VERDAD</span> DETRÁS DE CADA <span style={{color:C.accent}}>PICK</span>
       </p>
       <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center'}}>
-        {['✓ Verificado','⏱ Timestamp','🛡 Inmutable','⚡ Auditado'].map(l=>
-          <div key={l} style={{padding:'8px 12px',borderRadius:999,border:`1px solid ${C.border}`,background:'rgba(94,234,212,0.04)'}}>
-            <Mono style={{fontSize:10,color:C.ink1,letterSpacing:1,textTransform:'uppercase'}}>{l}</Mono>
-          </div>
-        )}
+        <div style={{padding:'7px 12px',borderRadius:999,border:'1px solid rgba(52,211,153,0.5)',background:'rgba(52,211,153,0.12)'}}><Mono style={{fontSize:9,color:C.positive,letterSpacing:1,textTransform:'uppercase'}}>✓ Verificado</Mono></div>
+        <div style={{padding:'7px 12px',borderRadius:999,border:'1px solid rgba(251,191,36,0.5)',background:'rgba(251,191,36,0.1)'}}><Mono style={{fontSize:9,color:C.gold,letterSpacing:1,textTransform:'uppercase'}}>⏱ Timestamp</Mono></div>
+        <div style={{padding:'7px 12px',borderRadius:999,border:'1px solid rgba(59,130,246,0.5)',background:'rgba(59,130,246,0.1)'}}><Mono style={{fontSize:9,color:C.accent3,letterSpacing:1,textTransform:'uppercase'}}>🛡 Inmutable</Mono></div>
+        <div style={{padding:'7px 12px',borderRadius:999,border:'1px solid rgba(168,85,247,0.5)',background:'rgba(168,85,247,0.1)'}}><Mono style={{fontSize:9,color:C.accent2,letterSpacing:1,textTransform:'uppercase'}}>⚡ Auditado</Mono></div>
       </div>
     </div>
 
-    <div style={{display:'flex',flexDirection:'column',gap:14,paddingBottom:8}}>
-      <BtnPrimary onClick={()=>setShowModal(true)} style={{background:C.positive,color:'#04111C'}}>COMENZAR A GANAR</BtnPrimary>
+    <div style={{display:'flex',flexDirection:'column',gap:10,paddingBottom:8}}>
+      <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:C.accent,letterSpacing:1.5,textTransform:'uppercase',textAlign:'center'}}>
+        PRONÓSTICOS · DATOS REALES · STATS VERIFICADAS
+      </p>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
         <button onClick={()=>setShowModal(true)} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>📊 Soy Tipster</button>
         <button onClick={entrarApostador} style={{height:42,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:999,color:C.ink0,fontSize:11,fontWeight:600,cursor:'pointer'}}>🎯 Soy Apostador</button>
