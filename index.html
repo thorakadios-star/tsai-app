@@ -722,17 +722,18 @@ function StatsScreen({params}){
               <stop offset="0%" stopColor={C.accent} stopOpacity=".3"/>
               <stop offset="100%" stopColor={C.accent} stopOpacity="0"/>
             </linearGradient></defs>
-            {(()=>{
-              const vals=dailyStats.map(d=>parseFloat(d.profit_units||0));
-              const min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
-              const pts=vals.map((v,i)=>`${vals.length>1?(i/(vals.length-1))*300:150},${70-((v-min)/range)*60}`);
-              const path=`M${pts.join(' L')}`;
-              const area=`${path} L300,80 L0,80 Z`;
-              return <>
-                <path d={area} fill="url(#sg)"/>
-                <path d={path} fill="none" stroke={C.accent} strokeWidth="1.5" strokeLinejoin="round"/>
-              </>;
-            })()}
+           {(()=>{
+  const vals=dailyStats.map(d=>parseFloat(d.profit_units||0));
+  if(vals.length < 2) return <text x="150" y="45" textAnchor="middle" fill={C.ink3} fontSize="9" fontFamily="monospace">SIN SUFICIENTES DATOS</text>;
+  const min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1))*300},${70-((v-min)/range)*60}`);
+  const path=`M${pts.join(' L')}`;
+  const area=`${path} L300,80 L0,80 Z`;
+  return <>
+    <path d={area} fill="url(#sg)"/>
+    <path d={path} fill="none" stroke={C.accent} strokeWidth="1.5" strokeLinejoin="round"/>
+  </>;
+})()}
           </svg>
           :<Kicker c={C.ink3}>Sin datos de historial</Kicker>}
       </div>
