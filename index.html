@@ -219,7 +219,7 @@ function NavHeader({title,right,showBack=true}){
 }
 
 // ── TabBar ────────────────────────────────────────────────────────────────────
-const TABS=[{id:'home',label:'Canales',icon:'⊟'},{id:'ranking',label:'Ranking',icon:'◈'},{id:'market',label:'Élite',icon:'◆'},{id:'cuenta',label:'Cuenta',icon:'○'}];
+const TABS=[{id:'home',label:'Canales',icon:'⊟'},{id:'ranking',label:'Ranking',icon:'◈'},{id:'market',label:'Comunidad',icon:'◆'},{id:'cuenta',label:'Cuenta',icon:'○'}];
 function TabBar({active,onTab}){
   return <div style={{flexShrink:0,display:'grid',gridTemplateColumns:'repeat(4,1fr)',padding:'10px 8px 20px',background:C.bg0,borderTop:`1px solid ${C.border}`}}>
     {TABS.map(t=><button key={t.id} onClick={()=>onTab(t.id)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'5px 0',background:'none',border:'none',cursor:'pointer'}}>
@@ -340,7 +340,7 @@ const ECO=[
   {title:'Conexiones α',sub:'Networking · Real time',color:'#3B82F6',bg:'rgba(59,130,246,0.07)'},
   {title:'Marketplace',sub:'Pronósticos del 1%',color:'#34D399',bg:'rgba(52,211,153,0.07)'},
 ];
-const SPORTS=['Todos','Fútbol','NBA','MLB','Tenis','UFC'];
+const SPORTS=['Todos','Fútbol','Basket','Tenis'];
 
 function HomeScreen({onTab}){
   const {push}=useNav();
