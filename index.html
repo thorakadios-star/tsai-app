@@ -24,6 +24,7 @@ html,body{height:100%;background:#0d1117;display:flex;align-items:center;justify
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
 <div class="chrome">
@@ -139,6 +140,43 @@ function useMensajes(tipsterId){
   return {data,loading,refetch:fetch};
 }
 
+function useRacha(tipsterId){
+  const [data,setData]=useState([]);
+  useEffect(()=>{
+    if(!tipsterId)return;
+    sb.from('boletos')
+      .select('estado')
+      .eq('tipster_id',tipsterId)
+      .in('estado',['ganado','perdido','nulo'])
+      .order('settled_at',{ascending:false})
+      .limit(5)
+      .then(({data})=>setData(data||[]));
+  },[tipsterId]);
+  return data;
+}
+
+function useRachasTipsters(tipsterIds){
+  const [rachas,setRachas]=useState({});
+  useEffect(()=>{
+    if(!tipsterIds||!tipsterIds.length)return;
+    sb.from('boletos')
+      .select('tipster_id,estado,settled_at')
+      .in('tipster_id',tipsterIds)
+      .in('estado',['ganado','perdido','nulo'])
+      .order('settled_at',{ascending:false})
+      .limit(tipsterIds.length*5)
+      .then(({data})=>{
+        const map={};
+        (data||[]).forEach(b=>{
+          if(!map[b.tipster_id])map[b.tipster_id]=[];
+          if(map[b.tipster_id].length<5)map[b.tipster_id].push({estado:b.estado});
+        });
+        setRachas(map);
+      });
+  },[tipsterIds?.join(',')]);
+  return rachas;
+}
+
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 function Avatar({name='?',size=40,url=null}){
   if(url) return <img src={url} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
@@ -149,6 +187,14 @@ function Avatar({name='?',size=40,url=null}){
     alignItems:'center',justifyContent:'center',flexShrink:0,fontWeight:700,
     fontSize:Math.round(size*.38),color:'#fff'}}>{ini}</div>;
 }
+function RachaBadges({picks,size=12}){
+  const cfg={ganado:{bg:'#34D399',txt:'#04111C',l:'W'},perdido:{bg:'#F87171',txt:'#04111C',l:'L'},nulo:{bg:'#FBBF24',txt:'#04111C',l:'V'}};
+  if(!picks||!picks.length) return null;
+  return <div style={{display:'flex',alignItems:'center',gap:4}}>
+    {picks.map((p,i)=>{const c=cfg[p.estado]||cfg.nulo;return <div key={i} style={{width:size,height:size,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*.55,fontWeight:700,color:c.txt,flexShrink:0}}>{c.l}</div>;})}
+  </div>;
+}
+
 function Kicker({c,style={},children}){return <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:1.4,textTransform:'uppercase',color:c||C.ink2,...style}}>{children}</span>;}
 function Mono({children,style={}}){return <span style={{fontFamily:"'JetBrains Mono',monospace",...style}}>{children}</span>;}
 function Display({children,style={}}){return <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,textTransform:'uppercase',letterSpacing:-.5,color:C.ink0,...style}}>{children}</span>;}
@@ -308,6 +354,7 @@ function HomeScreen({onTab}){
   const {push}=useNav();
   const {data:tipsters,loading,error}=useTipsters();
   const [sport,setSport]=useState('Todos');
+  const rachasTipsters=useRachasTipsters(tipsters.map(t=>t.id));
 
   const filtered = sport==='Todos' ? tipsters : tipsters.filter(t=>
     (t.sport_focus||[]).some(s=>s.toLowerCase().includes(sport.toLowerCase()))
@@ -376,7 +423,9 @@ function HomeScreen({onTab}){
         {error&&<EmptyState icon="⚠️" title="Error cargando datos" sub={error}/>}
         {!loading&&!error&&filtered.length===0&&<EmptyState icon="🔍" title="Sin tipsters" sub="No hay tipsters para este deporte"/>}
         <div style={{display:'flex',flexDirection:'column',gap:8,paddingBottom:24,animation:'fadeIn .3s ease'}}>
-          {filtered.map(t=><Card key={t.id} onClick={()=>push('chat',{tipster:t})} style={{padding:13,display:'flex',gap:10,alignItems:'center',cursor:'pointer'}}>
+          {filtered.map(t=>{
+            const racha=rachasTipsters[t.id]||[];
+            return <Card key={t.id} onClick={()=>push('chat',{tipster:t})} style={{padding:13,display:'flex',gap:10,alignItems:'center',cursor:'pointer'}}>
             <Avatar name={t.display_name||t.username||'?'} size={44} url={t.avatar_url}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
@@ -386,9 +435,8 @@ function HomeScreen({onTab}){
               </div>
               <Kicker>{(t.sport_focus||[]).join(' · ')||'Multi-deporte'} · {t.total_picks||0} picks</Kicker>
               <div style={{display:'flex',alignItems:'center',gap:5,marginTop:5}}>
-                <span style={{fontSize:11,color:C.ink1}}>
-                  {t.wins||0}W · {t.losses||0}L · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'Sin datos'}
-                </span>
+                <RachaBadges picks={racha} size={13}/>
+                {!racha.length&&<span style={{fontSize:11,color:C.ink1}}>{t.wins||0}W · {t.losses||0}L · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'Sin datos'}</span>}
               </div>
             </div>
             <div style={{textAlign:'right',flexShrink:0}}>
@@ -401,7 +449,7 @@ function HomeScreen({onTab}){
                 {t.profit_units?`${parseFloat(t.profit_units)>0?'+':''}${parseFloat(t.profit_units).toFixed(1)}u`:''}
               </Mono>
             </div>
-          </Card>)}
+          </Card>;})}
         </div>
       </div>
     </div>
@@ -414,6 +462,7 @@ function ChatScreen({params,onTab}){
   const {push}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
   const {data:picks,loading,refetch}=usePicks(t.id);
+  const rachaChat=useRacha(t.id);
   const {data:mensajes,refetch:refetchMensajes}=useMensajes(t.id);
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
@@ -520,7 +569,10 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         <Avatar name={t.display_name||'?'} size={32} url={t.avatar_url}/>
         <div style={{flex:1}}>
           <div style={{fontSize:12,fontWeight:600,color:C.ink0}}>{t.display_name||t.username}</div>
-          <Kicker>{t.total_picks||0} picks · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginTop:3}}>
+            <RachaBadges picks={rachaChat} size={10}/>
+            <Kicker>{t.total_picks||0} picks · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
+          </div>
         </div>
         {t.is_verified&&<div style={{padding:'3px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)'}}>
           <Kicker c={C.accent}>Verificado</Kicker>
@@ -765,6 +817,7 @@ function InfoScreen({params,onTab}){
 function StatsScreen({params}){
   const t=params?.tipster??{display_name:'Tipster'};
   const dailyStats=useDailyStats(t.id);
+  const rachaStats=useRacha(t.id);
   const totalProfit=dailyStats.reduce((a,d)=>a+parseFloat(d.profit_units||0),0);
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
@@ -802,6 +855,13 @@ function StatsScreen({params}){
           :<Kicker c={C.ink3}>Sin datos de historial</Kicker>}
       </div>
       {/* Stats grid */}
+      {rachaStats.length>0&&<div style={{marginBottom:16}}>
+        <Kicker style={{display:'block',marginBottom:8}}>RACHA RECIENTE</Kicker>
+        <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
+          <RachaBadges picks={rachaStats} size={20}/>
+          <Kicker style={{marginLeft:4}}>← más reciente</Kicker>
+        </div>
+      </div>}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:C.border,borderRadius:12,overflow:'hidden',border:`1px solid ${C.border}`,marginBottom:16}}>
         {[
           {l:'Picks totales',v:t.total_picks||0},
@@ -832,6 +892,38 @@ function StatsScreen({params}){
       </>}
     </div>
   </div>;
+}
+
+function ChartRenderer({stats,tipsterId}){
+  useEffect(()=>{
+    const canvas=document.getElementById('chart_'+tipsterId);
+    if(!canvas||!stats.length)return;
+    if(canvas._chartInstance)canvas._chartInstance.destroy();
+    const labels=stats.map(d=>{const dt=new Date(d.fecha);return (dt.getDate()+'').padStart(2,'0')+'/'+(dt.getMonth()+1+'').padStart(2,'0');});
+    const profit=stats.map(d=>Math.round(parseFloat(d.profit_units||0)*100)/100);
+    const yieldD=stats.map(d=>Math.round(parseFloat(d.yield_pct||0)*100)/100);
+    const ctx=canvas.getContext('2d');
+    canvas._chartInstance=new window.Chart(ctx,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Profit',data:profit,borderColor:'#5EEAD4',backgroundColor:'rgba(94,234,212,0.08)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#5EEAD4',fill:true,tension:0.3},
+        {label:'Yield',data:yieldD,borderColor:'#A855F7',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2,pointBackgroundColor:'#A855F7',fill:false,tension:0.3},
+      ]},
+      options:{
+        responsive:false,
+        animation:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'rgba(180,180,180,0.6)',font:{size:8,family:'monospace'},maxRotation:45,minRotation:45,autoSkip:true,maxTicksLimit:8},grid:{color:'rgba(120,120,120,0.08)'},border:{color:'rgba(120,120,120,0.15)'}},
+          y:{ticks:{display:false},grid:{color:ctx=>ctx.tick.value===0?'rgba(180,180,180,0.4)':'rgba(120,120,120,0.05)',lineWidth:ctx=>ctx.tick.value===0?1.5:1},border:{display:false}},
+        },
+      },
+    });
+    canvas.style.width='100%';canvas.style.height='100%';
+    canvas.width=canvas.offsetWidth||300;canvas.height=canvas.offsetHeight||140;
+    canvas._chartInstance.resize();
+  },[stats,tipsterId]);
+  return null;
 }
 
 // ── RANKING ───────────────────────────────────────────────────────────────────
