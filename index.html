@@ -36,7 +36,7 @@ html,body{height:100%;background:#0d1117;display:flex;align-items:center;justify
 </div>
 
 <script type="text/babel">
-const {useState,useContext,createContext,useEffect,useCallback} = React;
+const {useState,useContext,createContext,useEffect,useCallback,useRef} = React;
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://tpjgmqsdypzvhrdxhttz.supabase.co';
@@ -130,7 +130,7 @@ function useMensajes(tipsterId){
     sb.from('mensajes')
       .select('id,contenido,tipo,created_at,tipster_id')
       .eq('tipster_id',tipsterId)
-      .eq('tipo','texto')
+      .in('tipo',['texto','sello'])
       .order('created_at',{ascending:false})
       .limit(30)
       .then(({data,error})=>{if(!error)setData(data||[]);setLoading(false);});
@@ -417,7 +417,9 @@ function ChatScreen({params,onTab}){
   const {data:mensajes,refetch:refetchMensajes}=useMensajes(t.id);
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
-  const [liquidando,setLiquidando]=useState(null); // pick id abierto
+  const [liquidando,setLiquidando]=useState(null);
+  const chatEndRef=useRef(null);
+  useEffect(()=>{if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[picks,mensajes]); // pick id abierto
 
   // Cargar usuarios para el selector
 
@@ -535,6 +537,18 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         ...mensajes.map(m=>({...m,_tipo:'texto',_fecha:m.created_at}))]
         .sort((a,b)=>new Date(a._fecha)-new Date(b._fecha))
         .map(item=>{
+          if(item._tipo==='texto'&&item.tipo==='sello'){
+            let sd={};try{sd=JSON.parse(item.contenido||'{}');}catch(e){}
+            return <div key={item.id} style={{marginBottom:12,display:'flex',justifyContent:'center',animation:'fadeIn .25s ease'}}>
+              <div style={{padding:'10px 20px',borderRadius:12,border:`1px solid ${sd.color||C.border}44`,background:`${sd.color||C.border}11`,display:'flex',alignItems:'center',gap:10}}>
+                <span style={{fontSize:22}}>{sd.emoji||'➖'}</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:sd.color||C.ink0,textTransform:'uppercase',letterSpacing:.5}}>{(sd.resultado||'RESUELTO').toUpperCase()}</div>
+                  <Mono style={{fontSize:11,color:C.ink1}}>{sd.profit>=0?'+':''}{parseFloat(sd.profit||0).toFixed(2)}u · @{parseFloat(sd.cuota||0).toFixed(2)} · {sd.stake}u stake</Mono>
+                </div>
+              </div>
+            </div>;
+          }
           if(item._tipo==='texto') return <div key={item.id} style={{marginBottom:10,animation:'fadeIn .25s ease'}}>
             <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
               <Avatar name={t.display_name||'?'} size={22} url={t.avatar_url}/>
@@ -653,6 +667,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
           </div>
         </div>;
       })}
+      <div ref={chatEndRef}/>
     </div>
 
     {/* Input chat */}
