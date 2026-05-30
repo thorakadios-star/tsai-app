@@ -144,12 +144,8 @@ function useRacha(tipsterId){
   const [data,setData]=useState([]);
   useEffect(()=>{
     if(!tipsterId)return;
-    sb.from('boletos')
-      .select('estado')
-      .eq('tipster_id',tipsterId)
-      .in('estado',['ganado','perdido','nulo'])
-      .order('settled_at',{ascending:false})
-      .limit(5)
+    sb.from('boletos').select('estado').eq('tipster_id',tipsterId)
+      .in('estado',['ganado','perdido','nulo']).order('settled_at',{ascending:false}).limit(5)
       .then(({data})=>setData(data||[]));
   },[tipsterId]);
   return data;
@@ -159,27 +155,23 @@ function useRachasTipsters(tipsterIds){
   const [rachas,setRachas]=useState({});
   useEffect(()=>{
     if(!tipsterIds||!tipsterIds.length)return;
-    sb.from('boletos')
-      .select('tipster_id,estado,settled_at')
-      .in('tipster_id',tipsterIds)
-      .in('estado',['ganado','perdido','nulo'])
-      .order('settled_at',{ascending:false})
-      .limit(tipsterIds.length*5)
+    sb.from('boletos').select('tipster_id,estado,settled_at')
+      .in('tipster_id',tipsterIds).in('estado',['ganado','perdido','nulo'])
+      .order('settled_at',{ascending:false}).limit(tipsterIds.length*5)
       .then(({data})=>{
         const map={};
-        (data||[]).forEach(b=>{
-          if(!map[b.tipster_id])map[b.tipster_id]=[];
-          if(map[b.tipster_id].length<5)map[b.tipster_id].push({estado:b.estado});
-        });
+        (data||[]).forEach(b=>{if(!map[b.tipster_id])map[b.tipster_id]=[];if(map[b.tipster_id].length<5)map[b.tipster_id].push({estado:b.estado});});
         setRachas(map);
       });
-  },[tipsterIds?.join(',')]);
+  },[tipsterIds?tipsterIds.join(','):'']);
   return rachas;
 }
 
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 function Avatar({name='?',size=40,url=null}){
-  if(url) return <img src={url} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
+  const logoTSAI='https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png';
+  const finalUrl=url||(name&&name.toLowerCase().includes('vip tsai')?logoTSAI:null);
+  if(finalUrl) return <img src={finalUrl} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
   const s=(name||'?').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
   const bg=['#7a3030','#7a5a30','#307a5a','#305a7a','#5a307a','#7a3060'][s%6];
   const ini=(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -189,7 +181,7 @@ function Avatar({name='?',size=40,url=null}){
 }
 function RachaBadges({picks,size=12}){
   const cfg={ganado:{bg:'#34D399',txt:'#04111C',l:'W'},perdido:{bg:'#F87171',txt:'#04111C',l:'L'},nulo:{bg:'#FBBF24',txt:'#04111C',l:'V'}};
-  if(!picks||!picks.length) return null;
+  if(!picks||!picks.length)return null;
   return <div style={{display:'flex',alignItems:'center',gap:4}}>
     {picks.map((p,i)=>{const c=cfg[p.estado]||cfg.nulo;return <div key={i} style={{width:size,height:size,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*.55,fontWeight:700,color:c.txt,flexShrink:0}}>{c.l}</div>;})}
   </div>;
@@ -423,9 +415,7 @@ function HomeScreen({onTab}){
         {error&&<EmptyState icon="⚠️" title="Error cargando datos" sub={error}/>}
         {!loading&&!error&&filtered.length===0&&<EmptyState icon="🔍" title="Sin tipsters" sub="No hay tipsters para este deporte"/>}
         <div style={{display:'flex',flexDirection:'column',gap:8,paddingBottom:24,animation:'fadeIn .3s ease'}}>
-          {filtered.map(t=>{
-            const racha=rachasTipsters[t.id]||[];
-            return <Card key={t.id} onClick={()=>push('chat',{tipster:t})} style={{padding:13,display:'flex',gap:10,alignItems:'center',cursor:'pointer'}}>
+          {filtered.map(t=><Card key={t.id} onClick={()=>push('chat',{tipster:t})} style={{padding:13,display:'flex',gap:10,alignItems:'center',cursor:'pointer'}}>
             <Avatar name={t.display_name||t.username||'?'} size={44} url={t.avatar_url}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
@@ -435,8 +425,9 @@ function HomeScreen({onTab}){
               </div>
               <Kicker>{(t.sport_focus||[]).join(' · ')||'Multi-deporte'} · {t.total_picks||0} picks</Kicker>
               <div style={{display:'flex',alignItems:'center',gap:5,marginTop:5}}>
-                <RachaBadges picks={racha} size={13}/>
-                {!racha.length&&<span style={{fontSize:11,color:C.ink1}}>{t.wins||0}W · {t.losses||0}L · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'Sin datos'}</span>}
+                <span style={{fontSize:11,color:C.ink1}}>
+                  {t.wins||0}W · {t.losses||0}L · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'Sin datos'}
+                </span>
               </div>
             </div>
             <div style={{textAlign:'right',flexShrink:0}}>
@@ -449,7 +440,7 @@ function HomeScreen({onTab}){
                 {t.profit_units?`${parseFloat(t.profit_units)>0?'+':''}${parseFloat(t.profit_units).toFixed(1)}u`:''}
               </Mono>
             </div>
-          </Card>;})}
+          </Card>)}
         </div>
       </div>
     </div>
@@ -623,8 +614,8 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         return <div key={p.id} style={{marginBottom:16,animation:'fadeIn .25s ease'}}>
           {/* Header row con badge desplegable */}
           <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
-            <span style={{fontSize:14}}>🎯</span>
-            <span style={{fontSize:12,fontWeight:600,color:C.ink0,textTransform:'uppercase',letterSpacing:.5}}>Nuevo Pick</span>
+            <span style={{fontSize:14}}>{estado==='pendiente'||estado==='en_curso'?'🎯':cfg.icon}</span>
+            <span style={{fontSize:12,fontWeight:600,color:estado==='pendiente'||estado==='en_curso'?C.ink0:ec,textTransform:'uppercase',letterSpacing:.5}}>{estado==='pendiente'||estado==='en_curso'?'Nuevo Pick':'Pick Resuelto'}</span>
             {puedeGestionar&&isPendiente&&<div style={{marginLeft:'auto',position:'relative'}}>
               <button onClick={()=>setLiquidando(liquidando===p.id?null:p.id)} style={{
                 padding:'2px 8px',borderRadius:4,background:C.bg3,
@@ -776,6 +767,13 @@ function InfoScreen({params,onTab}){
       {t.bio&&<div style={{borderLeft:`2px solid ${C.accent}`,paddingLeft:12,marginBottom:16}}>
         <p style={{fontSize:13,color:C.ink1,lineHeight:1.6}}>{t.bio}</p>
       </div>}
+      {rachaStats.length>0&&<div style={{marginBottom:16}}>
+        <Kicker style={{display:'block',marginBottom:8}}>RACHA RECIENTE</Kicker>
+        <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
+          <RachaBadges picks={rachaStats} size={20}/>
+          <Kicker style={{marginLeft:4}}>← más reciente</Kicker>
+        </div>
+      </div>}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:C.border,borderRadius:10,overflow:'hidden',border:`1px solid ${C.border}`,marginBottom:16}}>
         {[
           {l:'Picks totales',v:t.total_picks||0},
@@ -831,37 +829,21 @@ function StatsScreen({params}){
         {t.yield_pct&&<Mono style={{fontSize:22,color:C.ink1}}>%</Mono>}
       </div>
       <p style={{fontSize:11,color:C.ink2,marginBottom:12}}>{t.total_picks||0} picks registrados</p>
-      {/* Sparkline placeholder → en producción usar recharts/d3 */}
-      <div style={{height:80,background:C.bg2,borderRadius:8,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16,position:'relative',overflow:'hidden'}}>
-        {dailyStats.length>0
-          ?<svg width="100%" height="100%" viewBox="0 0 300 80" preserveAspectRatio="none">
-            <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={C.accent} stopOpacity=".3"/>
-              <stop offset="100%" stopColor={C.accent} stopOpacity="0"/>
-            </linearGradient></defs>
-           {(()=>{
-  const vals=dailyStats.map(d=>parseFloat(d.profit_units||0));
-  if(vals.length < 2) return <text x="150" y="45" textAnchor="middle" fill={C.ink3} fontSize="9" fontFamily="monospace">SIN SUFICIENTES DATOS</text>;
-  const min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
-  const pts=vals.map((v,i)=>`${(i/(vals.length-1))*300},${70-((v-min)/range)*60}`);
-  const path=`M${pts.join(' L')}`;
-  const area=`${path} L300,80 L0,80 Z`;
-  return <>
-    <path d={area} fill="url(#sg)"/>
-    <path d={path} fill="none" stroke={C.accent} strokeWidth="1.5" strokeLinejoin="round"/>
-  </>;
-})()}
-          </svg>
-          :<Kicker c={C.ink3}>Sin datos de historial</Kicker>}
-      </div>
-      {/* Stats grid */}
-      {rachaStats.length>0&&<div style={{marginBottom:16}}>
-        <Kicker style={{display:'block',marginBottom:8}}>RACHA RECIENTE</Kicker>
-        <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
-          <RachaBadges picks={rachaStats} size={20}/>
-          <Kicker style={{marginLeft:4}}>← más reciente</Kicker>
+      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(234,242,255,.35)',letterSpacing:'1.5px',textTransform:'uppercase',marginBottom:6,display:'flex',alignItems:'center',gap:8}}>
+        <span>EVOLUCIÓN MENSUAL</span>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginLeft:'auto'}}>
+          <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:16,height:2,background:'#5EEAD4',display:'inline-block',borderRadius:2}}></span><span style={{color:'rgba(234,242,255,.5)',fontSize:8}}>Profit</span></span>
+          <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:16,height:0,display:'inline-block',borderTop:'2px dashed #A855F7'}}></span><span style={{color:'rgba(234,242,255,.5)',fontSize:8}}>Yield</span></span>
         </div>
-      </div>}
+      </div>
+      <div style={{height:150,marginBottom:16,position:'relative',background:C.bg2,borderRadius:8,border:`1px solid ${C.border}`,padding:8}}>
+        {dailyStats.length>0
+          ?<canvas id={`chart_${t.id}`} style={{display:'block'}}/>
+          :<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}><Kicker c={C.ink3}>Sin datos de historial</Kicker></div>}
+      </div>
+      {dailyStats.length>0&&<ChartRenderer stats={dailyStats} tipsterId={t.id}/>}
+
+      {/* Stats grid */}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:C.border,borderRadius:12,overflow:'hidden',border:`1px solid ${C.border}`,marginBottom:16}}>
         {[
           {l:'Picks totales',v:t.total_picks||0},
@@ -897,31 +879,29 @@ function StatsScreen({params}){
 function ChartRenderer({stats,tipsterId}){
   useEffect(()=>{
     const canvas=document.getElementById('chart_'+tipsterId);
-    if(!canvas||!stats.length)return;
-    if(canvas._chartInstance)canvas._chartInstance.destroy();
-    const labels=stats.map(d=>{const dt=new Date(d.fecha);return (dt.getDate()+'').padStart(2,'0')+'/'+(dt.getMonth()+1+'').padStart(2,'0');});
+    if(!canvas||!stats.length||!window.Chart)return;
+    if(canvas._ci){canvas._ci.destroy();canvas._ci=null;}
+    const W=canvas.parentElement.offsetWidth||300;
+    const H=canvas.parentElement.offsetHeight||140;
+    canvas.width=W; canvas.height=H;
+    const labels=stats.map(d=>{const dt=new Date(d.fecha);return(dt.getDate()+'').padStart(2,'0')+'/'+(dt.getMonth()+1+'').padStart(2,'0');});
     const profit=stats.map(d=>Math.round(parseFloat(d.profit_units||0)*100)/100);
     const yieldD=stats.map(d=>Math.round(parseFloat(d.yield_pct||0)*100)/100);
-    const ctx=canvas.getContext('2d');
-    canvas._chartInstance=new window.Chart(ctx,{
+    canvas._ci=new window.Chart(canvas.getContext('2d'),{
       type:'line',
       data:{labels,datasets:[
-        {label:'Profit',data:profit,borderColor:'#5EEAD4',backgroundColor:'rgba(94,234,212,0.08)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#5EEAD4',fill:true,tension:0.3},
-        {label:'Yield',data:yieldD,borderColor:'#A855F7',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2,pointBackgroundColor:'#A855F7',fill:false,tension:0.3},
+        {label:'Profit',data:profit,borderColor:'#5EEAD4',backgroundColor:'rgba(94,234,212,0.08)',borderWidth:2,pointRadius:profit.length===1?4:2,pointBackgroundColor:'#5EEAD4',fill:true,tension:0.3,spanGaps:true},
+        {label:'Yield',data:yieldD,borderColor:'#A855F7',backgroundColor:'transparent',borderWidth:2,borderDash:[4,3],pointRadius:yieldD.length===1?4:2,pointBackgroundColor:'#A855F7',fill:false,tension:0.3,spanGaps:true},
       ]},
       options:{
-        responsive:false,
-        animation:false,
+        responsive:false,animation:false,
         plugins:{legend:{display:false}},
         scales:{
-          x:{ticks:{color:'rgba(180,180,180,0.6)',font:{size:8,family:'monospace'},maxRotation:45,minRotation:45,autoSkip:true,maxTicksLimit:8},grid:{color:'rgba(120,120,120,0.08)'},border:{color:'rgba(120,120,120,0.15)'}},
-          y:{ticks:{display:false},grid:{color:ctx=>ctx.tick.value===0?'rgba(180,180,180,0.4)':'rgba(120,120,120,0.05)',lineWidth:ctx=>ctx.tick.value===0?1.5:1},border:{display:false}},
+          x:{ticks:{color:'rgba(200,200,200,0.6)',font:{size:8,family:'monospace'},maxRotation:45,minRotation:45,autoSkip:true,maxTicksLimit:8},grid:{color:'rgba(120,120,120,0.08)'},border:{color:'rgba(120,120,120,0.15)'}},
+          y:{ticks:{display:false},grid:{color:ctx=>ctx.tick.value===0?'rgba(200,200,200,0.35)':'rgba(120,120,120,0.05)',lineWidth:ctx=>ctx.tick.value===0?1.5:1},border:{display:false}},
         },
       },
     });
-    canvas.style.width='100%';canvas.style.height='100%';
-    canvas.width=canvas.offsetWidth||300;canvas.height=canvas.offsetHeight||140;
-    canvas._chartInstance.resize();
   },[stats,tipsterId]);
   return null;
 }
