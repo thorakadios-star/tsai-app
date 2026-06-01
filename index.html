@@ -340,7 +340,7 @@ const ECO=[
   {title:'Conexiones α',sub:'Networking · Real time',color:'#3B82F6',bg:'rgba(59,130,246,0.07)'},
   {title:'Marketplace',sub:'Pronósticos del 1%',color:'#34D399',bg:'rgba(52,211,153,0.07)'},
 ];
-const SPORTS=['Todos','Fútbol','NBA','MLB','Tenis','UFC'];
+const SPORTS=['Todos','Fútbol','Baloncesto','Tenis'];
 
 function HomeScreen({onTab}){
   const {push}=useNav();
@@ -391,7 +391,7 @@ function HomeScreen({onTab}){
       </div>
       {/* Eco */}
       <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',padding:'0 16px 12px'}}>
-        <Display style={{fontSize:14}}>Ecosistema</Display><Kicker>Acceso rápido</Kicker>
+        <Display style={{fontSize:14}}>Ecosistema</Display>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,padding:'0 16px 18px'}}>
         {ECO.map(e=><div key={e.title} style={{borderRadius:12,border:`1px solid ${e.color}55`,background:e.bg,padding:11,position:'relative',cursor:'pointer'}}>
