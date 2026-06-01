@@ -28,7 +28,7 @@ html,body{height:100%;background:#0d1117;display:flex;align-items:center;justify
 </head>
 <body>
 <div class="chrome">
-  <div class="label">TSAI · TrueStats AI · v0.7</div>
+  <div class="label">TSAI · TrueStats AI · v2.0</div>
   <div class="phone">
     <div class="island"></div>
     <div class="homebar"></div>
@@ -359,7 +359,7 @@ function HomeScreen({onTab}){
         <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/logos/logo-truestats-transparent.png" style={{width:32,height:32,borderRadius:8,objectFit:'contain'}}/>
         <div style={{borderLeft:`1px solid ${C.borderStrong}`,paddingLeft:10}}>
           <Kicker>TrueStats AI</Kicker>
-          <div><Mono style={{fontSize:10,color:C.accent,letterSpacing:2}}>v0.7</Mono></div>
+          <div><Mono style={{fontSize:10,color:C.accent,letterSpacing:2}}>v2.0</Mono></div>
         </div>
       </div>
       <div style={{display:'flex',gap:8}}>
@@ -1126,7 +1126,7 @@ function SettingsScreen({onTab}){
           <Kicker c={C.negative} style={{textTransform:'uppercase'}}>Cerrar sesión</Kicker>
         </Card>
       </div>
-      <div style={{textAlign:'center',padding:'12px 0 80px'}}><Kicker c={C.ink3}>TSAI · TrueStats AI · v0.7.1</Kicker></div>
+      <div style={{textAlign:'center',padding:'12px 0 80px'}}><Kicker c={C.ink3}>TSAI · TrueStats AI · v2.0</Kicker></div>
     </div>
     <TabBar active="cuenta" onTab={onTab}/>
   </div>;
