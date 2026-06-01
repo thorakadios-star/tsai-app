@@ -179,6 +179,7 @@ function Avatar({name='?',size=40,url=null}){
     alignItems:'center',justifyContent:'center',flexShrink:0,fontWeight:700,
     fontSize:Math.round(size*.38),color:'#fff'}}>{ini}</div>;
 }
+
 function RachaBadges({picks,size=12}){
   const cfg={ganado:{bg:'#34D399',txt:'#04111C',l:'W'},perdido:{bg:'#F87171',txt:'#04111C',l:'L'},nulo:{bg:'#FBBF24',txt:'#04111C',l:'V'}};
   if(!picks||!picks.length)return null;
@@ -187,14 +188,32 @@ function RachaBadges({picks,size=12}){
   </div>;
 }
 
-function Kicker({c,style={},children}){return <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:1.4,textTransform:'uppercase',color:c||C.ink2,...style}}>{children}</span>;}
+// Ahora Kicker acepta un color 'c' opcional
+function Kicker({c, style={}, children}){
+  return <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:1.4,textTransform:'uppercase',color:c||C.ink2,...style}}>{children}</span>;
+}
+
 function Mono({children,style={}}){return <span style={{fontFamily:"'JetBrains Mono',monospace",...style}}>{children}</span>;}
+
 function Display({children,style={}}){return <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,textTransform:'uppercase',letterSpacing:-.5,color:C.ink0,...style}}>{children}</span>;}
+
+// Card permite sobrescribir estilos
 function Card({children,style={},onClick}){return <div onClick={onClick} style={{background:C.bg1,borderRadius:14,border:`1px solid ${C.border}`,...style}}>{children}</div>;}
+
 function Chip({label,active,onClick}){return <button onClick={onClick} style={{flexShrink:0,padding:'6px 12px',borderRadius:999,fontFamily:"'JetBrains Mono',monospace",fontSize:10,textTransform:'uppercase',letterSpacing:1,background:active?C.accent:'transparent',color:active?C.accentInk:C.ink1,border:`1px solid ${active?C.accent:C.borderStrong}`,fontWeight:active?700:500,cursor:'pointer',whiteSpace:'nowrap'}}>{label}</button>;}
+
 function BtnPrimary({children,onClick,style={}}){return <button onClick={onClick} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,height:46,padding:'0 18px',width:'100%',background:C.accent,color:C.accentInk,border:'none',borderRadius:999,fontWeight:700,fontSize:13,letterSpacing:.5,cursor:'pointer',...style}}>{children}</button>;}
+
 function BtnGhost({children,onClick,style={}}){return <button onClick={onClick} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,height:46,padding:'0 16px',width:'100%',background:'rgba(255,255,255,0.03)',color:C.ink0,border:`1px solid ${C.borderStrong}`,borderRadius:999,fontWeight:500,fontSize:13,cursor:'pointer',...style}}>{children}</button>;}
-function Pill({children}){return <div style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 12px',borderRadius:999,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.04)'}}><div style={{width:5,height:5,borderRadius:3,background:C.accent}}/><Kicker>{children}</Kicker></div>;}
+
+// Pill ahora acepta color para el texto
+function Pill({children, color}){
+  return <div style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 12px',borderRadius:999,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.04)'}}>
+    <div style={{width:5,height:5,borderRadius:3,background:C.accent}}/>
+    <Kicker c={color}>{children}</Kicker>
+  </div>;
+}
+
 function LiveBadge(){return <span style={{display:'inline-flex',alignItems:'center',gap:3,padding:'2px 5px',borderRadius:4,border:'1px solid rgba(248,113,113,0.4)'}}><span style={{width:4,height:4,borderRadius:2,background:C.negative,animation:'pulse 1.5s infinite'}}/><Mono style={{fontSize:8,color:C.negative,fontWeight:700,letterSpacing:1}}>LIVE</Mono></span>;}
 
 function Spinner(){return <div style={{width:20,height:20,borderRadius:10,border:`2px solid ${C.bg3}`,borderTopColor:C.accent,animation:'spin .7s linear infinite'}}/>;}
