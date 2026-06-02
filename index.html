@@ -586,6 +586,7 @@ function HomeScreen({onTab}){
         </div>
       </div>
       <div style={{display:'flex',gap:8}}>
+        <div onClick={()=>window.history.back()} style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:18,color:C.ink0}}>‹</div>
         <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
       </div>
     </div>
@@ -684,6 +685,7 @@ function ChatScreen({params,onTab}){
   const [showJoin,setShowJoin]=useState(null); // null=no mostrar, 'ask'=pedir nombre, 'joined'=unido
   const {data:picks,loading,refetch}=usePicks(t.id);
   const rachaChat=useRacha(t.id);
+  const [nombreApostador,setNombreApostador]=useState('');
 
   // Apostador: mostrar ventana de unirse antes del chat
   useEffect(()=>{
@@ -836,10 +838,9 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
   // ── Chat principal ────────────────────────────────────────────────────────
   // Pantalla "Unirme" para apostadores
   if(esApostador && showJoin==='ask'){
-    const [nombre,setNombre]=useState('');
     const unirse=()=>{
-      if(!nombre.trim())return;
-      localStorage.setItem('joined_'+t.id, nombre.trim());
+      if(!nombreApostador.trim())return;
+      localStorage.setItem('joined_'+t.id, nombreApostador.trim());
       setShowJoin('joined');
     };
     return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
@@ -850,13 +851,13 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         <Kicker style={{textAlign:'center',fontSize:11,textTransform:'none',letterSpacing:0,color:C.ink1}}>Únete al canal para ver los picks de este tipster</Kicker>
         <div style={{width:'100%',display:'flex',flexDirection:'column',gap:8}}>
           <Kicker>TU NOMBRE DE USUARIO</Kicker>
-          <input value={nombre} onChange={e=>setNombre(e.target.value)}
+          <input value={nombreApostador} onChange={e=>setNombreApostador(e.target.value)}
             onKeyDown={e=>e.key==='Enter'&&unirse()}
             placeholder="Ej: apostador123"
             style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,
               padding:'0 14px',fontSize:13,color:C.ink0,outline:'none',width:'100%'}}/>
         </div>
-        <BtnPrimary onClick={unirse} style={{opacity:nombre.trim()?1:.4}}>
+        <BtnPrimary onClick={unirse} style={{opacity:nombreApostador.trim()?1:.4}}>
           UNIRME AL CANAL
         </BtnPrimary>
       </div>
