@@ -170,7 +170,7 @@ function useRachasTipsters(tipsterIds){
 
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 function Avatar({name='?',size=40,url=null}){
-  const logoTSAI='https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png';
+  const logoTSAI='https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/LOGO%20VIP.jpeg';
   const finalUrl=url||(name&&name.toLowerCase().includes('vip tsai')?logoTSAI:null);
   if(finalUrl) return <img src={finalUrl} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
   const s=(name||'?').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
@@ -257,36 +257,108 @@ function SplashScreen(){
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
 
-  // ── CONFIGURACIÓN VISUAL — edita aquí ────────────────────────────────────
+ // ── CONFIGURACIÓN VISUAL — edita aquí ────────────────────────────────────
   const CFG = {
-    // Logo
-    logoUrl: 'https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png',
-    logoTop: 28,
-    logoW: 90, logoH: 80,
+    // ── LOGO ──
+    logoUrl:    'https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png',
+    logoTop:    128,       // posición vertical
+    logoW:      190,       // ancho en px
+    logoH:      180,       // alto en px
 
-    // Box 1 (auditoría) — posición y tamaño
-    box1Top: 155, box1H: 125,
+    // ── BOX 1 (auditoría) ──
+    box1Top:    325,      // posición vertical
+    box1H:      145,      // alto en px
+    
+    // ── BADGE 1: AUDITORÍA PARA TIPSTERS ──
+    badge1Top:  335,      // posición vertical
+    badge1W:    280,      // ancho en px
+    badge1H:    35,       // alto en px
+    badge1Color:'#5EEAD4',// color borde, texto y glow
+    badge1Label:'AUDITORÍA PARA TIPSTERS', // texto
+    badge1Icon: '<rect x="4" y="13" width="3.6" height="7" rx="1"/><rect x="10.2" y="8" width="3.6" height="12" rx="1"/><rect x="16.4" y="4" width="3.6" height="16" rx="1"/>', // SVG path
+    badge1FontSize: 10,    // tamaño de fuente
+    badge1LetterSpacing: '.12em', // espaciado entre letras
 
-    // Badges dentro del box 1
-    badge1Top: 166, badge1W: 260,
-    badge2Top: 202, badge2W: 260,
-    badge3Top: 238, badge3W: 260,
+    // ── BADGE 2: TRANSPARENCIA PARA APOSTADORES ──
+    badge2Top:  380,
+    badge2W:    280,
+    badge2H:    35,
+    badge2Color:'#5EEAD4',
+    badge2Label:'TRANSPARENCIA PARA APOSTADORES',
+    badge2Icon: '<path d="M5 12l5 5L20 7"/>',
+    badge2FontSize: 10,
+    badge2LetterSpacing: '.12em',
 
-    // Box 2 (hero con botones) — posición y tamaño
-    box2Top: 304, box2H: 118,
+    // ── BADGE 3: VALIDACIÓN MEDIANTE IA ──
+    badge3Top:  425,
+    badge3W:    280,
+    badge3H:    35,
+    badge3Color:'#5EEAD4',
+    badge3Label:'VALIDACIÓN MEDIANTE IA',
+    badge3Icon: '<path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>',
+    badge3FontSize: 10,
+    badge3LetterSpacing: '.12em',
 
-    // Pill "PRONÓSTICOS..." dentro del box 2
-    pillTop: 316,
+    // ── BOX 2 (hero con botones) ──
+    box2Top:    584,      // posición vertical
+    box2H:      118,      // alto en px
 
-    // TRUE STATS AI
-    titleTop: 334, titleSize: 22,
+    // ── PILL: PRONÓSTICOS · DATOS REALES · VERIFICADO ──
+    pillTop:         516,           // posición vertical
+    pillText:        'PRONÓSTICOS · DATOS REALES · VERIFICADO', // texto
+    pillColor:       '#fffff', // color texto
+    pillFontSize:    11,             // tamaño fuente
+    pillLetterSpacing: '.1em',      // espaciado letras
+    pillDotColor:    '#5EEAD4',     // color del punto
+    pillDotSize:     7,             // tamaño del punto en px
+    pillGap:         6,             // espacio entre punto y texto
 
-    // Botones Soy Tipster / Soy Apostador
-    btnsTop: 374, btnsLeft: 36,
+    // ── TRUE STATS AI ──
+    titleTop:        594,           // posición vertical
+    titleSize:       28,            // tamaño fuente "TRUE STATS"
+    titleColorLeft:  '#EAF2FF',     // color "TRUE"
+    titleColorRight: '#5EEAD4',     // color "STATS"
+    titleAIColor:    '#5EEAD4',     // color "AI"
+    titleAISize:     14,            // tamaño fuente "AI" (o usa titleSize*.55)
+    titleAISpacing:  2,             // letter-spacing "AI"
+    titleAIMargin:   5,             // margen izquierdo "AI"
+    titleFont:       "'Space Grotesk',sans-serif", // fuente del título
+    titleWeight:     700,           // peso fuente
+    titleTracking:   -1,            // letter-spacing título
 
-    // Colores de botones
-    colorTipster: '#34D399',
-    colorApostador: '#A855F7',
+    // ── BOTONES ──
+    btnsTop:         640,           // posición vertical
+    btnsLeft:        60,            // margen izq/der
+    btnFont:         "'JetBrains Mono',monospace", // fuente botones
+    btnWeight:       700,           // peso fuente
+    btnSize:         16,            // tamaño fuente "Acceder/Entrar"
+    btnTracking:     -1,            // letter-spacing
+    btnIconSize:     12,            // tamaño icono SVG
+    btnIconStroke:   2.5,           // grosor icono
+
+    // SOY TIPSTER
+    colorTipster:    '#5EEAD4',     // color principal
+    labelTipster:    'SOY TIPSTER', // texto etiqueta superior
+    textTipster:     'ACCEDER',     // texto botón
+    labelFontTipster:"'JetBrains Mono',monospace", // fuente etiqueta
+    labelSizeTipster: 12,            // tamaño etiqueta
+    labelSpacingTipster: '.1em',    // espaciado etiqueta
+    labelMarginTipster: 6,          // margen inferior etiqueta
+
+    // SOY APOSTADOR
+    colorApostador:  '#FFFFF',
+    labelApostador:  'SOY APOSTADOR',
+    textApostador:   'ENTRAR',
+    labelFontApostador:"'JetBrains Mono',monospace",
+    labelSizeApostador: 12,
+    labelSpacingApostador: '.1em',
+    labelMarginApostador: 6,
+
+    // SEPARADOR VERTICAL entre botones
+    separadorColor:  'rgba(94,234,212,.2)', // color
+    separadorW:      2,             // grosor en px
+    separadorH:      40,            // alto en px
+    separadorMargin: 4,             // margen inferior
   };
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -361,23 +433,23 @@ function SplashScreen(){
 
     {/* ── BOX 1: Auditoría ── */}
     <Box top={CFG.box1Top} height={CFG.box1H}>
-      <Center top={CFG.badge1Top} width={CFG.badge1W} height={27}>
-        <Badge color="#5EEAD4" height={27}
-          icon='<rect x="4" y="13" width="3.6" height="7" rx="1"/><rect x="10.2" y="8" width="3.6" height="12" rx="1"/><rect x="16.4" y="4" width="3.6" height="16" rx="1"/>'
-          label="AUDITORÍA PARA TIPSTERS"
-          style={{height:27,boxShadow:'0 0 20px -7px rgba(94,234,212,0.55),inset 0 0 18px -11px rgba(94,234,212,0.7)'}}/>
+      <Center top={CFG.badge1Top} width={CFG.badge1W} height={CFG.badge1H}>
+        <Badge color={CFG.badge1Color}
+          icon={CFG.badge1Icon}
+          label={CFG.badge1Label}
+          style={{height:CFG.badge1H,fontSize:CFG.badge1FontSize,letterSpacing:CFG.badge1LetterSpacing,boxShadow:`0 0 20px -7px ${CFG.badge1Color}88,inset 0 0 18px -11px ${CFG.badge1Color}b0`}}/>
       </Center>
-      <Center top={CFG.badge2Top} width={CFG.badge2W} height={27}>
-        <Badge color="#5EEAD4"
-          icon='<path d="M5 12l5 5L20 7"/>'
-          label="TRANSPARENCIA PARA APOSTADORES"
-          style={{height:27}}/>
+      <Center top={CFG.badge2Top} width={CFG.badge2W} height={CFG.badge2H}>
+        <Badge color={CFG.badge2Color}
+          icon={CFG.badge2Icon}
+          label={CFG.badge2Label}
+          style={{height:CFG.badge2H,fontSize:CFG.badge2FontSize,letterSpacing:CFG.badge2LetterSpacing}}/>
       </Center>
-      <Center top={CFG.badge3Top} width={CFG.badge3W} height={27}>
-        <Badge color="#5EEAD4"
-          icon='<path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>'
-          label="VALIDACIÓN MEDIANTE IA"
-          style={{height:27}}/>
+      <Center top={CFG.badge3Top} width={CFG.badge3W} height={CFG.badge3H}>
+        <Badge color={CFG.badge3Color}
+          icon={CFG.badge3Icon}
+          label={CFG.badge3Label}
+          style={{height:CFG.badge3H,fontSize:CFG.badge3FontSize,letterSpacing:CFG.badge3LetterSpacing}}/>
       </Center>
     </Box>
 
@@ -385,22 +457,22 @@ function SplashScreen(){
     <Box top={CFG.box2Top} height={CFG.box2H}>
       {/* Pill */}
       <Center top={CFG.pillTop} width="auto" height="auto">
-        <div style={{whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:6,
-          fontFamily:"'JetBrains Mono',monospace",fontSize:8,
-          color:'rgba(94,234,212,.8)',letterSpacing:'.1em',textTransform:'uppercase'}}>
-          <span style={{width:5,height:5,borderRadius:'50%',background:'#5EEAD4',display:'inline-block'}}/>
-          PRONÓSTICOS · DATOS REALES · VERIFICADO
+        <div style={{whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:CFG.pillGap,
+          fontFamily:"'JetBrains Mono',monospace",fontSize:CFG.pillFontSize,
+          color:CFG.pillColor,letterSpacing:CFG.pillLetterSpacing,textTransform:'uppercase'}}>
+          <span style={{width:CFG.pillDotSize,height:CFG.pillDotSize,borderRadius:'50%',background:CFG.pillDotColor,display:'inline-block'}}/>
+          {CFG.pillText}
         </div>
       </Center>
       {/* TRUE STATS AI */}
       <Center top={CFG.titleTop} width="auto" height="auto">
         <div style={{whiteSpace:'nowrap',textAlign:'center'}}>
-          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:CFG.titleSize,
-            color:'#EAF2FF',textTransform:'uppercase',letterSpacing:-1}}>TRUE </span>
-          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:CFG.titleSize,
-            color:'#5EEAD4',textTransform:'uppercase',letterSpacing:-1}}>STATS</span>
-          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:CFG.titleSize*.55,
-            color:'#5EEAD4',textTransform:'uppercase',letterSpacing:2,marginLeft:3}}>AI</span>
+          <span style={{fontFamily:CFG.titleFont,fontWeight:CFG.titleWeight,fontSize:CFG.titleSize,
+            color:CFG.titleColorLeft,textTransform:'uppercase',letterSpacing:CFG.titleTracking}}>TRUE </span>
+          <span style={{fontFamily:CFG.titleFont,fontWeight:CFG.titleWeight,fontSize:CFG.titleSize,
+            color:CFG.titleColorRight,textTransform:'uppercase',letterSpacing:CFG.titleTracking}}>STATS</span>
+          <span style={{fontFamily:CFG.titleFont,fontWeight:CFG.titleWeight,fontSize:CFG.titleAISize,
+            color:CFG.titleAIColor,textTransform:'uppercase',letterSpacing:CFG.titleAISpacing,marginLeft:CFG.titleAIMargin}}>AI</span>
         </div>
       </Center>
       {/* Botones */}
@@ -408,36 +480,41 @@ function SplashScreen(){
         right:CFG.btnsLeft,display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
         {/* Soy Tipster */}
         <div onClick={()=>setShowModal(true)} style={{cursor:'pointer'}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,
-            color:`${CFG.colorTipster}b0`,letterSpacing:'.1em',textTransform:'uppercase',marginBottom:4}}>
-            SOY TIPSTER
+          <div style={{fontFamily:CFG.labelFontTipster,fontSize:CFG.labelSizeTipster,
+            color:`${CFG.colorTipster}b0`,letterSpacing:CFG.labelSpacingTipster,
+            textTransform:'uppercase',marginBottom:CFG.labelMarginTipster}}>
+            {CFG.labelTipster}
           </div>
-          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,
-            fontSize:CFG.titleSize,color:CFG.colorTipster,letterSpacing:-1,
+          <div style={{fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
+            fontSize:CFG.btnSize,color:CFG.colorTipster,letterSpacing:CFG.btnTracking,
             lineHeight:1,display:'flex',alignItems:'center',gap:5}}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={CFG.colorTipster}
-              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" width={CFG.btnIconSize} height={CFG.btnIconSize} fill="none"
+              stroke={CFG.colorTipster} strokeWidth={CFG.btnIconStroke}
+              strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
             </svg>
-            Acceder
+            {CFG.textTipster}
           </div>
         </div>
         {/* Separador */}
-        <div style={{width:1,height:36,background:'rgba(94,234,212,.2)',marginBottom:2}}/>
+        <div style={{width:CFG.separadorW,height:CFG.separadorH,
+          background:CFG.separadorColor,marginBottom:CFG.separadorMargin}}/>
         {/* Soy Apostador */}
         <div onClick={entrarApostador} style={{cursor:'pointer',textAlign:'right'}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,
-            color:`${CFG.colorApostador}b0`,letterSpacing:'.1em',textTransform:'uppercase',marginBottom:4}}>
-            SOY APOSTADOR
+          <div style={{fontFamily:CFG.labelFontApostador,fontSize:CFG.labelSizeApostador,
+            color:`${CFG.colorApostador}b0`,letterSpacing:CFG.labelSpacingApostador,
+            textTransform:'uppercase',marginBottom:CFG.labelMarginApostador}}>
+            {CFG.labelApostador}
           </div>
-          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,
-            fontSize:CFG.titleSize,color:CFG.colorApostador,letterSpacing:-1,
+          <div style={{fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
+            fontSize:CFG.btnSize,color:CFG.colorApostador,letterSpacing:CFG.btnTracking,
             lineHeight:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={CFG.colorApostador}
-              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" width={CFG.btnIconSize} height={CFG.btnIconSize} fill="none"
+              stroke={CFG.colorApostador} strokeWidth={CFG.btnIconStroke}
+              strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
             </svg>
-            Entrar
+            {CFG.textApostador}
           </div>
         </div>
       </div>
@@ -509,7 +586,7 @@ function HomeScreen({onTab}){
         </div>
       </div>
       <div style={{display:'flex',gap:8}}>
-        {['⌕','🔔'].map(i=><div key={i} style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>{i}</div>)}
+        <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
       </div>
     </div>
     <div style={{flex:1,overflowY:'auto'}}>
@@ -604,8 +681,18 @@ function HomeScreen({onTab}){
 function ChatScreen({params,onTab}){
   const {push}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
+  const [showJoin,setShowJoin]=useState(null); // null=no mostrar, 'ask'=pedir nombre, 'joined'=unido
   const {data:picks,loading,refetch}=usePicks(t.id);
   const rachaChat=useRacha(t.id);
+
+  // Apostador: mostrar ventana de unirse antes del chat
+  useEffect(()=>{
+    if(esApostador){
+      const joined=localStorage.getItem('joined_'+t.id);
+      if(!joined) setShowJoin('ask');
+      else setShowJoin('joined');
+    }
+  },[esApostador,t.id]);
   const {data:mensajes,refetch:refetchMensajes}=useMensajes(t.id);
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
@@ -747,9 +834,41 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
   // ── Selector de identidad ─────────────────────────────────────────────────
 
   // ── Chat principal ────────────────────────────────────────────────────────
+  // Pantalla "Unirme" para apostadores
+  if(esApostador && showJoin==='ask'){
+    const [nombre,setNombre]=useState('');
+    const unirse=()=>{
+      if(!nombre.trim())return;
+      localStorage.setItem('joined_'+t.id, nombre.trim());
+      setShowJoin('joined');
+    };
+    return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
+      <NavHeader title={t.display_name||'Canal'}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:28,gap:16}}>
+        <Avatar name={t.display_name||'?'} size={64} url={t.avatar_url}/>
+        <Display style={{fontSize:20,textAlign:'center'}}>{t.display_name||t.username}</Display>
+        <Kicker style={{textAlign:'center',fontSize:11,textTransform:'none',letterSpacing:0,color:C.ink1}}>Únete al canal para ver los picks de este tipster</Kicker>
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:8}}>
+          <Kicker>TU NOMBRE DE USUARIO</Kicker>
+          <input value={nombre} onChange={e=>setNombre(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&unirse()}
+            placeholder="Ej: apostador123"
+            style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,
+              padding:'0 14px',fontSize:13,color:C.ink0,outline:'none',width:'100%'}}/>
+        </div>
+        <BtnPrimary onClick={unirse} style={{opacity:nombre.trim()?1:.4}}>
+          UNIRME AL CANAL
+        </BtnPrimary>
+      </div>
+    </div>;
+  }
+
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
     <NavHeader title={t.display_name||t.username||'Canal'}
-      right={<button onClick={()=>push('info',{tipster:t})} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.4)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5}}>INFO →</button>}/>
+      right={<div style={{display:'flex',gap:6}}>
+        {puedeGestionar&&<a href={`./ocr-scanner.html?tipster=${encodeURIComponent(t.id)}&tipsterName=${encodeURIComponent(t.display_name||t.username||'')}`} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.06)',border:'1px solid rgba(94,234,212,0.3)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5,textDecoration:'none',display:'flex',alignItems:'center'}}>📸 SCANNER</a>}
+        <button onClick={()=>push('info',{tipster:t})} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.4)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5}}>INFO →</button>
+      </div>}/>
     <div style={{flex:1,overflowY:'auto',padding:'14px 14px 0'}}>
       {/* Channel info strip */}
       <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
@@ -764,9 +883,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         {t.is_verified&&<div style={{padding:'3px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)'}}>
           <Kicker c={C.accent}>Verificado</Kicker>
         </div>}
-        {puedeGestionar&&<a href="./ocr-scanner.html" style={{padding:'3px 10px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)',textDecoration:'none',display:'flex',alignItems:'center',gap:4}}>
-          <Kicker c={C.accent}>📸 PICK</Kicker>
-        </a>}
+
       </div>
 
       {/* Picks + Mensajes mezclados */}
