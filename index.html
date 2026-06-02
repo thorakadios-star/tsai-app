@@ -25,6 +25,7 @@ html,body{height:100%;background:#0d1117;display:flex;align-items:center;justify
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="chrome">
@@ -534,7 +535,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
     const colores={ganado:'#34D399',perdido:'#F87171',nulo:'#FBBF24'};
     const {data:canalSello}=await sb.from('canales').select('id').eq('tipster_id',boleto.tipster_id).limit(1).single();
     if(canalSello){
-      const {error:selloErr}=await sb.from('mensajes').insert({
+        const {error:selloErr}=await sb.from('mensajes').insert({
         canal_id:canalSello.id,
         tipster_id:boleto.tipster_id,
         boleto_id:pickId,
@@ -567,6 +568,18 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
     setMsg('');
     setSending(false);
     refetchMensajes();
+  }
+
+  async function capturarPick(pickId){
+    const el=document.getElementById('pick-card-'+pickId);
+    if(!el||!window.html2canvas)return;
+    try{
+      const canvas=await window.html2canvas(el,{backgroundColor:'#0B1024',scale:2,useCORS:true,logging:false});
+      const link=document.createElement('a');
+      link.download=`pick-${pickId}.png`;
+      link.href=canvas.toDataURL('image/png');
+      link.click();
+    }catch(e){console.error('Captura error:',e);}
   }
 
   const estadoConfig={
@@ -652,7 +665,10 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
           <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
             <span style={{fontSize:14}}>{estado==='pendiente'||estado==='en_curso'?'🎯':cfg.icon}</span>
             <span style={{fontSize:12,fontWeight:600,color:estado==='pendiente'||estado==='en_curso'?C.ink0:ec,textTransform:'uppercase',letterSpacing:.5}}>{estado==='pendiente'||estado==='en_curso'?'Nuevo Pick':'Pick Resuelto'}</span>
-            {puedeGestionar&&isPendiente&&<div style={{marginLeft:'auto',position:'relative'}}>
+            <button onClick={()=>capturarPick(p.id)} style={{marginLeft:'auto',padding:'2px 8px',borderRadius:4,background:'rgba(120,170,255,0.08)',border:'1px solid rgba(120,170,255,0.2)',cursor:'pointer',display:'flex',alignItems:'center',gap:3}}>
+              <span style={{fontSize:9}}>📸</span><Kicker c={C.ink2}>Captura</Kicker>
+            </button>
+            {puedeGestionar&&isPendiente&&<div style={{position:'relative'}}>
               <button onClick={()=>setLiquidando(liquidando===p.id?null:p.id)} style={{
                 padding:'2px 8px',borderRadius:4,background:C.bg3,
                 border:`1px solid ${C.border}`,cursor:'pointer',display:'flex',alignItems:'center',gap:4,
@@ -682,7 +698,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
           </div>
 
           {/* Card */}
-          <div style={{background:C.bg1,borderRadius:14,overflow:'hidden',border:`1px solid ${estado==='ganado'?'rgba(52,211,153,0.3)':estado==='perdido'?'rgba(248,113,113,0.25)':C.border}`}}>
+          <div id={`pick-card-${p.id}`} style={{background:C.bg1,borderRadius:14,overflow:'hidden',border:`1px solid ${estado==='ganado'?'rgba(52,211,153,0.3)':estado==='perdido'?'rgba(248,113,113,0.25)':C.border}`}}>
             <div style={{height:4,background:`linear-gradient(90deg,${C.accent},${C.accent2})`}}/>
             <div style={{padding:14}}>
               {/* Meta badges */}
@@ -712,17 +728,30 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
               {/* Imagen boleto */}
               {p.imagen_url&&<img src={p.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:12,display:'block'}}/>}
 
-              {/* Stats grid */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:1,background:'rgba(255,255,255,0.08)',borderRadius:8,overflow:'hidden',marginBottom:12}}>
-                {[
-                  {label:'Cuota',val:`@${p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}`,color:C.accent},
-                  {label:'Stake',val:p.stake?`${p.stake}u`:'—',color:C.ink0},
-                  {label:'Beneficio',val:beneficio!=null?`${beneficio>=0?'+':''}${beneficio.toFixed(2)}u`:'—',color:beneficio!=null&&beneficio>=0?C.positive:beneficio!=null?C.negative:C.ink2},
-                ].map(s=><div key={s.label} style={{background:C.bg2,padding:'10px 8px',textAlign:'center'}}>
-                  <Kicker style={{display:'block',marginBottom:4}}>{s.label}</Kicker>
-                  <Mono style={{fontSize:16,fontWeight:600,color:s.color}}>{s.val}</Mono>
-                </div>)}
-              </div>
+              {/* Stats grid o Box resultado */}
+              {(estado==='pendiente'||estado==='en_curso')
+                ?<div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:1,background:'rgba(255,255,255,0.08)',borderRadius:8,overflow:'hidden',marginBottom:12}}>
+                  {[
+                    {label:'Cuota',val:`@${p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}`,color:C.accent},
+                    {label:'Stake',val:p.stake?`${p.stake}u`:'—',color:C.ink0},
+                    {label:'Beneficio',val:'—',color:C.ink2},
+                  ].map(s=><div key={s.label} style={{background:C.bg2,padding:'10px 8px',textAlign:'center'}}>
+                    <Kicker style={{display:'block',marginBottom:4}}>{s.label}</Kicker>
+                    <Mono style={{fontSize:16,fontWeight:600,color:s.color}}>{s.val}</Mono>
+                  </div>)}
+                </div>
+                :<div style={{padding:'14px 16px',borderRadius:14,border:`1px solid ${ec}66`,background:`${ec}11`,display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
+                  <div style={{width:44,height:44,borderRadius:'50%',background:`${ec}22`,border:`2px solid ${ec}80`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{cfg.icon}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:700,color:ec,textTransform:'uppercase',letterSpacing:.5,marginBottom:3}}>{(estado||'').toUpperCase()}</div>
+                    <Mono style={{fontSize:10,color:C.ink1}}>@{p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'} · Stake {p.stake||'—'}u</Mono>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <Mono style={{fontSize:20,fontWeight:600,color:ec,display:'block'}}>{beneficio!=null?(beneficio>=0?'+':'')+beneficio.toFixed(2)+'u':'—'}</Mono>
+                    <Mono style={{fontSize:9,color:`${ec}88`,textTransform:'uppercase',letterSpacing:1}}>{estado==='ganado'?'beneficio':estado==='perdido'?'pérdida':'devuelto'}</Mono>
+                  </div>
+                </div>
+              }
 
               {/* Divider */}
               <div style={{height:1,background:'rgba(255,255,255,0.08)',margin:'10px 0'}}/>
