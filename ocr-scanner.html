@@ -105,7 +105,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5}
     <div class="logo-box">TS</div>
     <div><div class="logo-name">TrueStats AI</div><div class="logo-sub">Nuevo Pick</div></div>
   </div>
-  <a href="./index.html" class="back">‹ App</a>
+  <a href="./index.html" class="back">‹ Volver</a>
 </div>
 
 <div class="wrap">
@@ -192,13 +192,18 @@ textarea{resize:vertical;min-height:72px;line-height:1.5}
     📤 PUBLICAR PICK
   </button>
 
+  <div id="pendientesWrap" style="display:none">
+    <span class="section" style="margin-top:4px">Picks pendientes de liquidar</span>
+    <div id="pendientesList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
 </div>
 
 <div class="toast hidden" id="toast"></div>
 
-<script src="./supabase-client.js"></script>
-<script src="./ocr-scanner.js"></script>
-<script src="./picks.js"></script>
+<script src="supabase-client.js"></script>
+<script src="ocr-scanner.js"></script>
+<script src="picks.js"></script>
 <script>
 let imgBase64 = null;
 let casaOCR   = '';
@@ -220,6 +225,7 @@ async function onTipsterChange() {
     ? '<option value="">Selecciona canal…</option>'+data.map(c=>`<option value="${c.id}">${c.nombre} (${c.tipo})</option>`).join('')
     : '<option value="">Sin canales</option>';
   updateBtn();
+  cargarPendientes(tid);
 }
 
 function updateBtn() {
@@ -291,10 +297,53 @@ async function enviarPick(){
     });
     toast(`✓ Pick #${id} publicado`,'ok');
     resetForm();
+    cargarPendientes(document.getElementById('tipsterSel').value);
   }catch(e){toast('✗ '+e.message,'err');}
   btn.disabled=false; btn.textContent='📤 PUBLICAR PICK';
   updateBtn();
 }
+
+async function cargarPendientes(tid){
+  if(!tid)return;
+  try{
+    const picks=await cargarPicksPendientes(tid);
+    const wrap=document.getElementById('pendientesWrap');
+    if(!picks.length){wrap.style.display='none';return;}
+    wrap.style.display='block';
+    document.getElementById('pendientesList').innerHTML=picks.map(p=>`
+      <div class="pick-card" id="pc-${p.id}">
+        <div class="pick-header">
+          <div>
+            <div class="pick-cuota">@${p.cuota_total||'—'}</div>
+            <div class="pick-meta">${p.casa_apuestas||''} · ${p.stake||'—'}u · ${fmt(p.fecha_procesado)}</div>
+          </div>
+          <div class="pick-badges">
+            <span class="badge ${p.confianza||''}">${p.confianza||'—'}</span>
+            <span class="badge">${p.tipo_apuesta||'—'}</span>
+            <span class="badge">${p.tipo_acceso||'—'}</span>
+          </div>
+        </div>
+        ${p.analisis?`<div style="font-size:12px;color:var(--i1);line-height:1.5">${p.analisis}</div>`:''}
+        <div class="pick-actions">
+          <button class="btn-win"  onclick="liquidar(${p.id},'ganado')">✓ GANADO</button>
+          <button class="btn-loss" onclick="liquidar(${p.id},'perdido')">✗ PERDIDO</button>
+          <button class="btn-void" onclick="liquidar(${p.id},'nulo')">— NULO</button>
+        </div>
+      </div>`).join('');
+  }catch(e){console.warn(e);}
+}
+
+async function liquidar(id,resultado){
+  try{
+    const profit=await liquidarPick(id,resultado);
+    document.getElementById(`pc-${id}`)?.remove();
+    const s=profit>=0?'+':'';
+    toast(`${resultado.toUpperCase()} · ${s}${profit}u`,resultado==='ganado'?'ok':'err');
+    if(!document.getElementById('pendientesList').children.length)
+      document.getElementById('pendientesWrap').style.display='none';
+  }catch(e){toast('✗ '+e.message,'err');}
+}
+
 function resetForm(){
   clearImagen();
   ['fCuota','fStake','fAnalisis'].forEach(id=>document.getElementById(id).value='');
