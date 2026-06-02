@@ -261,104 +261,104 @@ function SplashScreen(){
   const CFG = {
     // ── LOGO ──
     logoUrl:    'https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png',
-    logoTop:    28,       // posición vertical
-    logoW:      90,       // ancho en px
-    logoH:      80,       // alto en px
+    logoTop:    128,       // posición vertical
+    logoW:      190,       // ancho en px
+    logoH:      180,       // alto en px
 
     // ── BOX 1 (auditoría) ──
-    box1Top:    155,      // posición vertical
-    box1H:      125,      // alto en px
-
+    box1Top:    325,      // posición vertical
+    box1H:      145,      // alto en px
+    
     // ── BADGE 1: AUDITORÍA PARA TIPSTERS ──
-    badge1Top:  166,      // posición vertical
-    badge1W:    260,      // ancho en px
-    badge1H:    27,       // alto en px
+    badge1Top:  335,      // posición vertical
+    badge1W:    280,      // ancho en px
+    badge1H:    35,       // alto en px
     badge1Color:'#5EEAD4',// color borde, texto y glow
     badge1Label:'AUDITORÍA PARA TIPSTERS', // texto
     badge1Icon: '<rect x="4" y="13" width="3.6" height="7" rx="1"/><rect x="10.2" y="8" width="3.6" height="12" rx="1"/><rect x="16.4" y="4" width="3.6" height="16" rx="1"/>', // SVG path
-    badge1FontSize: 9,    // tamaño de fuente
-    badge1LetterSpacing: '.11em', // espaciado entre letras
+    badge1FontSize: 10,    // tamaño de fuente
+    badge1LetterSpacing: '.12em', // espaciado entre letras
 
     // ── BADGE 2: TRANSPARENCIA PARA APOSTADORES ──
-    badge2Top:  202,
-    badge2W:    260,
-    badge2H:    27,
+    badge2Top:  380,
+    badge2W:    280,
+    badge2H:    35,
     badge2Color:'#5EEAD4',
     badge2Label:'TRANSPARENCIA PARA APOSTADORES',
     badge2Icon: '<path d="M5 12l5 5L20 7"/>',
-    badge2FontSize: 9,
-    badge2LetterSpacing: '.11em',
+    badge2FontSize: 10,
+    badge2LetterSpacing: '.12em',
 
     // ── BADGE 3: VALIDACIÓN MEDIANTE IA ──
-    badge3Top:  238,
-    badge3W:    260,
-    badge3H:    27,
+    badge3Top:  425,
+    badge3W:    280,
+    badge3H:    35,
     badge3Color:'#5EEAD4',
     badge3Label:'VALIDACIÓN MEDIANTE IA',
     badge3Icon: '<path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>',
-    badge3FontSize: 9,
-    badge3LetterSpacing: '.11em',
+    badge3FontSize: 10,
+    badge3LetterSpacing: '.12em',
 
     // ── BOX 2 (hero con botones) ──
-    box2Top:    304,      // posición vertical
+    box2Top:    584,      // posición vertical
     box2H:      118,      // alto en px
 
     // ── PILL: PRONÓSTICOS · DATOS REALES · VERIFICADO ──
-    pillTop:         316,           // posición vertical
+    pillTop:         516,           // posición vertical
     pillText:        'PRONÓSTICOS · DATOS REALES · VERIFICADO', // texto
-    pillColor:       'rgba(94,234,212,.8)', // color texto
-    pillFontSize:    8,             // tamaño fuente
+    pillColor:       '#fffff', // color texto
+    pillFontSize:    11,             // tamaño fuente
     pillLetterSpacing: '.1em',      // espaciado letras
     pillDotColor:    '#5EEAD4',     // color del punto
-    pillDotSize:     5,             // tamaño del punto en px
+    pillDotSize:     7,             // tamaño del punto en px
     pillGap:         6,             // espacio entre punto y texto
 
     // ── TRUE STATS AI ──
-    titleTop:        334,           // posición vertical
-    titleSize:       22,            // tamaño fuente "TRUE STATS"
+    titleTop:        594,           // posición vertical
+    titleSize:       28,            // tamaño fuente "TRUE STATS"
     titleColorLeft:  '#EAF2FF',     // color "TRUE"
     titleColorRight: '#5EEAD4',     // color "STATS"
     titleAIColor:    '#5EEAD4',     // color "AI"
-    titleAISize:     12,            // tamaño fuente "AI" (o usa titleSize*.55)
+    titleAISize:     14,            // tamaño fuente "AI" (o usa titleSize*.55)
     titleAISpacing:  2,             // letter-spacing "AI"
-    titleAIMargin:   3,             // margen izquierdo "AI"
+    titleAIMargin:   5,             // margen izquierdo "AI"
     titleFont:       "'Space Grotesk',sans-serif", // fuente del título
     titleWeight:     700,           // peso fuente
     titleTracking:   -1,            // letter-spacing título
 
     // ── BOTONES ──
-    btnsTop:         374,           // posición vertical
-    btnsLeft:        36,            // margen izq/der
-    btnFont:         "'Space Grotesk',sans-serif", // fuente botones
+    btnsTop:         640,           // posición vertical
+    btnsLeft:        60,            // margen izq/der
+    btnFont:         "'JetBrains Mono',monospace", // fuente botones
     btnWeight:       700,           // peso fuente
-    btnSize:         22,            // tamaño fuente "Acceder/Entrar"
+    btnSize:         16,            // tamaño fuente "Acceder/Entrar"
     btnTracking:     -1,            // letter-spacing
-    btnIconSize:     16,            // tamaño icono SVG
+    btnIconSize:     12,            // tamaño icono SVG
     btnIconStroke:   2.5,           // grosor icono
 
     // SOY TIPSTER
-    colorTipster:    '#34D399',     // color principal
+    colorTipster:    '#5EEAD4',     // color principal
     labelTipster:    'SOY TIPSTER', // texto etiqueta superior
-    textTipster:     'Acceder',     // texto botón
+    textTipster:     'ACCEDER',     // texto botón
     labelFontTipster:"'JetBrains Mono',monospace", // fuente etiqueta
-    labelSizeTipster: 8,            // tamaño etiqueta
+    labelSizeTipster: 12,            // tamaño etiqueta
     labelSpacingTipster: '.1em',    // espaciado etiqueta
-    labelMarginTipster: 4,          // margen inferior etiqueta
+    labelMarginTipster: 6,          // margen inferior etiqueta
 
     // SOY APOSTADOR
-    colorApostador:  '#A855F7',
+    colorApostador:  '#FFFFF',
     labelApostador:  'SOY APOSTADOR',
-    textApostador:   'Entrar',
+    textApostador:   'ENTRAR',
     labelFontApostador:"'JetBrains Mono',monospace",
-    labelSizeApostador: 8,
+    labelSizeApostador: 12,
     labelSpacingApostador: '.1em',
-    labelMarginApostador: 4,
+    labelMarginApostador: 6,
 
     // SEPARADOR VERTICAL entre botones
     separadorColor:  'rgba(94,234,212,.2)', // color
-    separadorW:      1,             // grosor en px
-    separadorH:      36,            // alto en px
-    separadorMargin: 2,             // margen inferior
+    separadorW:      2,             // grosor en px
+    separadorH:      40,            // alto en px
+    separadorMargin: 4,             // margen inferior
   };
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -586,7 +586,6 @@ function HomeScreen({onTab}){
         </div>
       </div>
       <div style={{display:'flex',gap:8}}>
-        <div onClick={()=>window.history.back()} style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:18,color:C.ink0}}>‹</div>
         <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
       </div>
     </div>
@@ -598,9 +597,6 @@ function HomeScreen({onTab}){
   {/* Fíjate: pasamos 'color' como atributo, no 'style' */}
   <Pill color="#FFFFFF">PRONÓSTICOS · DATOS REALES · VERIFICADO</Pill>
 </div>
-          <div style={{display:'flex',justifyContent:'center',marginBottom:8}}>
-            <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:48,height:48,objectFit:'contain'}}/>
-          </div>
           <Display style={{fontSize:30,display:'block',textAlign:'center',marginBottom:4}}>
             TRUE <span style={{color:C.accent}}>STATS</span><span style={{fontSize:15,color:C.ink1,fontWeight:500}}> AI</span>
           </Display>
@@ -688,7 +684,6 @@ function ChatScreen({params,onTab}){
   const [showJoin,setShowJoin]=useState(null); // null=no mostrar, 'ask'=pedir nombre, 'joined'=unido
   const {data:picks,loading,refetch}=usePicks(t.id);
   const rachaChat=useRacha(t.id);
-  const [nombreApostador,setNombreApostador]=useState('');
 
   // Apostador: mostrar ventana de unirse antes del chat
   useEffect(()=>{
@@ -841,9 +836,10 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
   // ── Chat principal ────────────────────────────────────────────────────────
   // Pantalla "Unirme" para apostadores
   if(esApostador && showJoin==='ask'){
+    const [nombre,setNombre]=useState('');
     const unirse=()=>{
-      if(!nombreApostador.trim())return;
-      localStorage.setItem('joined_'+t.id, nombreApostador.trim());
+      if(!nombre.trim())return;
+      localStorage.setItem('joined_'+t.id, nombre.trim());
       setShowJoin('joined');
     };
     return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
@@ -854,13 +850,13 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         <Kicker style={{textAlign:'center',fontSize:11,textTransform:'none',letterSpacing:0,color:C.ink1}}>Únete al canal para ver los picks de este tipster</Kicker>
         <div style={{width:'100%',display:'flex',flexDirection:'column',gap:8}}>
           <Kicker>TU NOMBRE DE USUARIO</Kicker>
-          <input value={nombreApostador} onChange={e=>setNombreApostador(e.target.value)}
+          <input value={nombre} onChange={e=>setNombre(e.target.value)}
             onKeyDown={e=>e.key==='Enter'&&unirse()}
             placeholder="Ej: apostador123"
             style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,
               padding:'0 14px',fontSize:13,color:C.ink0,outline:'none',width:'100%'}}/>
         </div>
-        <BtnPrimary onClick={unirse} style={{opacity:nombreApostador.trim()?1:.4}}>
+        <BtnPrimary onClick={unirse} style={{opacity:nombre.trim()?1:.4}}>
           UNIRME AL CANAL
         </BtnPrimary>
       </div>
