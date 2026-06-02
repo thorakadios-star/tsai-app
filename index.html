@@ -257,6 +257,39 @@ function SplashScreen(){
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
 
+  // ── CONFIGURACIÓN VISUAL — edita aquí ────────────────────────────────────
+  const CFG = {
+    // Logo
+    logoUrl: 'https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png',
+    logoTop: 28,
+    logoW: 90, logoH: 80,
+
+    // Box 1 (auditoría) — posición y tamaño
+    box1Top: 155, box1H: 125,
+
+    // Badges dentro del box 1
+    badge1Top: 166, badge1W: 260,
+    badge2Top: 202, badge2W: 260,
+    badge3Top: 238, badge3W: 260,
+
+    // Box 2 (hero con botones) — posición y tamaño
+    box2Top: 304, box2H: 118,
+
+    // Pill "PRONÓSTICOS..." dentro del box 2
+    pillTop: 316,
+
+    // TRUE STATS AI
+    titleTop: 334, titleSize: 22,
+
+    // Botones Soy Tipster / Soy Apostador
+    btnsTop: 374, btnsLeft: 36,
+
+    // Colores de botones
+    colorTipster: '#34D399',
+    colorApostador: '#A855F7',
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
   const entrarApostador=()=>setSession({user:{id:'apostador',role:'apostador'}});
 
   const loginTipster=async()=>{
@@ -271,68 +304,174 @@ function SplashScreen(){
     setSession({user:{id:data.id,username:data.username,role:data.role,is_admin:data.is_admin}});
   };
 
-  const Badge=({color,stroke,icon,label,style={}})=><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,borderRadius:999,border:`1px solid ${color}80`,background:`${color}12`,boxShadow:`0 0 20px -7px ${color}88,inset 0 0 18px -11px ${color}b0`,color,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,textTransform:'uppercase',letterSpacing:'.11em',fontSize:8,backdropFilter:'blur(6px)',padding:'0 10px',...style}}>
-    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={stroke||color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{__html:icon}}/>
+  // Badge reutilizable
+  const Badge=({color,icon,label,style={}})=><div style={{
+    display:'flex',alignItems:'center',justifyContent:'center',
+    gap:7,borderRadius:999,
+    border:`1px solid ${color}80`,background:`${color}12`,
+    boxShadow:`0 0 20px -7px ${color}88,inset 0 0 18px -11px ${color}b0`,
+    color,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,
+    textTransform:'uppercase',letterSpacing:'.11em',fontSize:9,
+    backdropFilter:'blur(6px)',padding:'0 14px',...style,
+  }}>
+    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={color}
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      dangerouslySetInnerHTML={{__html:icon}}/>
     {label}
   </div>;
 
-  return <div style={{position:'relative',height:'100%',overflow:'hidden',
-    background:'radial-gradient(90% 50% at 50% 20%,rgba(94,234,212,.10),transparent 60%),radial-gradient(80% 60% at 80% 80%,rgba(168,85,247,.10),transparent 60%),radial-gradient(80% 60% at 20% 100%,rgba(59,130,246,.08),transparent 60%),#060A18',
-    color:'#EAF2FF'}}>
-    <div style={{position:'absolute',inset:0,opacity:.7,pointerEvents:'none',backgroundImage:'radial-gradient(circle at 20% 30%,rgba(94,234,212,.6) 0,rgba(94,234,212,.6) 1px,transparent 1.5px),radial-gradient(circle at 70% 18%,rgba(168,85,247,.5) 0,rgba(168,85,247,.5) 1px,transparent 1.5px),radial-gradient(circle at 85% 60%,rgba(59,130,246,.5) 0,rgba(59,130,246,.5) 1px,transparent 1.5px),radial-gradient(circle at 30% 80%,rgba(94,234,212,.4) 0,rgba(94,234,212,.4) 1px,transparent 1.5px),radial-gradient(circle at 10% 60%,rgba(120,180,255,.4) 0,rgba(120,180,255,.4) 1px,transparent 1.5px),radial-gradient(circle at 90% 92%,rgba(94,234,212,.4) 0,rgba(94,234,212,.4) 1px,transparent 1.5px)'}}/>
-    <div style={{position:'absolute',inset:18,borderRadius:32,border:'1px solid rgba(94,234,212,.22)',boxShadow:'rgba(94,234,212,.22) 0px 0px 60px -10px,rgba(94,234,212,.15) 0px 0px 60px -20px inset',pointerEvents:'none'}}/>
-    <div style={{position:'absolute',left:'50%',top:100,transform:'translateX(-50%)'}}>
-      <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:150,height:100,objectFit:'contain',filter:'drop-shadow(rgba(94,234,212,.35) 0px 0px 32px) drop-shadow(rgba(0,0,0,.5) 0px 2px 4px)'}}/>
-    </div>
-    <div style={{position:'absolute',left:'50%',top:220,transform:'translateX(-50%)',whiteSpace:'nowrap',fontFamily:"'JetBrains Mono',monospace",fontWeight:800,fontSize:12,letterSpacing:'.13em',color:'#5EEAD4',textTransform:'uppercase'}}>DATOS REALES · STATS VERIFICADAS</div>
-    <div style={{position:'absolute',left:24,top:285,width:'calc(100% - 48px)',height:140,borderRadius:26,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.06)',boxShadow:'rgba(94,234,212,0.5) 0px 0px 40px -20px inset'}}/>
-    <div style={{position:'absolute',left:'50%',top:300,transform:'translateX(-50%)',width:280,height:27}}>
-      <Badge color="#5EEAD4" icon='<rect x="4" y="13" width="3.6" height="7" rx="1"/><rect x="10.2" y="8" width="3.6" height="12" rx="1"/><rect x="16.4" y="4" width="3.6" height="16" rx="1"/>' label="AUDITORÍA PARA TIPSTERS" style={{height:27}}/>
-    </div>
-    <div style={{position:'absolute',left:'50%',top:340,transform:'translateX(-50%)',width:280,height:27}}>
-      <Badge color="#5EEAD4" icon='<path d="M5 12l5 5L20 7"/>' label="TRANSPARENCIA PARA APOSTADORES" style={{height:27}}/>
-    </div>
-    <div style={{position:'absolute',left:'50%',top:380,transform:'translateX(-50%)',width:280,height:27}}>
-      <Badge color="#5EEAD4" icon='<path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>' label="VALIDACIÓN MEDIANTE IA" style={{height:27}}/>
-    </div>
- 
+  // Box container reutilizable
+  const Box=({top,height,children})=><>
+    <div style={{
+      position:'absolute',left:24,top,width:'calc(100% - 48px)',height,
+      borderRadius:22,border:'1px solid rgba(94,234,212,0.4)',
+      background:'rgba(94,234,212,0.06)',
+      boxShadow:'rgba(94,234,212,0.5) 0px 0px 40px -20px inset',
+    }}/>
+    {children}
+  </>;
 
-    
-    <button onClick={()=>setShowModal(true)} style={{position:'absolute',left:'50%',top:650,transform:'translateX(-50%)',width:150,height:44,borderRadius:12,border:'1px solid rgba(120,170,255,.20)',background:'linear-gradient(rgba(255,255,255,.05),rgba(255,255,255,.02))',color:'#EFF3FA',fontFamily:"'Space Grotesk',sans-serif",fontWeight:600,fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5EEAD4" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="9" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
-      ACCESO
-    </button>
-    <div style={{position:'absolute',bottom:58,left:24,right:24,display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-      <button onClick={()=>setShowModal(true)} style={{height:48,borderRadius:12,border:'1px solid rgba(120,170,255,.20)',background:'linear-gradient(rgba(255,255,255,.05),rgba(255,255,255,.02))',color:'#EFF3FA',fontFamily:"'Space Grotesk',sans-serif",fontWeight:600,fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5EEAD4" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
-        Soy Tipster
-      </button>
-      <button onClick={entrarApostador} style={{height:48,borderRadius:12,border:'1px solid rgba(120,170,255,.20)',background:'linear-gradient(rgba(255,255,255,.05),rgba(255,255,255,.02))',color:'#EFF3FA',fontFamily:"'Space Grotesk',sans-serif",fontWeight:600,fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5EEAD4" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
-        Soy Apostador
-      </button>
+  // Posicionador centrado
+  const Center=({top,width,height,children})=><div style={{
+    position:'absolute',left:'50%',top,
+    transform:'translateX(-50%)',width,height,
+  }}>{children}</div>;
+
+  return <div style={{
+    position:'relative',height:'100%',overflow:'hidden',
+    background:'radial-gradient(90% 50% at 50% 20%,rgba(94,234,212,.10),transparent 60%),radial-gradient(80% 60% at 80% 80%,rgba(168,85,247,.10),transparent 60%),radial-gradient(80% 60% at 20% 100%,rgba(59,130,246,.08),transparent 60%),#060A18',
+    color:'#EAF2FF',
+  }}>
+    {/* Estrellas */}
+    <div style={{position:'absolute',inset:0,opacity:.7,pointerEvents:'none',
+      backgroundImage:'radial-gradient(circle at 20% 30%,rgba(94,234,212,.6) 0,rgba(94,234,212,.6) 1px,transparent 1.5px),radial-gradient(circle at 70% 18%,rgba(168,85,247,.5) 0,rgba(168,85,247,.5) 1px,transparent 1.5px),radial-gradient(circle at 85% 60%,rgba(59,130,246,.5) 0,rgba(59,130,246,.5) 1px,transparent 1.5px),radial-gradient(circle at 30% 80%,rgba(94,234,212,.4) 0,rgba(94,234,212,.4) 1px,transparent 1.5px),radial-gradient(circle at 10% 60%,rgba(120,180,255,.4) 0,rgba(120,180,255,.4) 1px,transparent 1.5px),radial-gradient(circle at 90% 92%,rgba(94,234,212,.4) 0,rgba(94,234,212,.4) 1px,transparent 1.5px)',
+    }}/>
+    {/* Marco */}
+    <div style={{position:'absolute',inset:18,borderRadius:32,
+      border:'1px solid rgba(94,234,212,.22)',
+      boxShadow:'rgba(94,234,212,.22) 0px 0px 60px -10px,rgba(94,234,212,.15) 0px 0px 60px -20px inset',
+      pointerEvents:'none',
+    }}/>
+
+    {/* ── LOGO ── */}
+    <div style={{position:'absolute',left:'50%',top:CFG.logoTop,transform:'translateX(-50%)'}}>
+      <img src={CFG.logoUrl} style={{width:CFG.logoW,height:CFG.logoH,objectFit:'contain',
+        filter:'drop-shadow(rgba(94,234,212,.35) 0px 0px 32px) drop-shadow(rgba(0,0,0,.5) 0px 2px 4px)'}}/>
     </div>
-    {showModal&&<div style={{position:'absolute',inset:0,background:'rgba(6,10,24,0.92)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,zIndex:50}}>
-      <div style={{background:'#0B1024',borderRadius:16,border:'1px solid rgba(120,170,255,0.2)',padding:24,width:'100%',maxWidth:320}}>
+
+    {/* ── BOX 1: Auditoría ── */}
+    <Box top={CFG.box1Top} height={CFG.box1H}>
+      <Center top={CFG.badge1Top} width={CFG.badge1W} height={27}>
+        <Badge color="#5EEAD4" height={27}
+          icon='<rect x="4" y="13" width="3.6" height="7" rx="1"/><rect x="10.2" y="8" width="3.6" height="12" rx="1"/><rect x="16.4" y="4" width="3.6" height="16" rx="1"/>'
+          label="AUDITORÍA PARA TIPSTERS"
+          style={{height:27,boxShadow:'0 0 20px -7px rgba(94,234,212,0.55),inset 0 0 18px -11px rgba(94,234,212,0.7)'}}/>
+      </Center>
+      <Center top={CFG.badge2Top} width={CFG.badge2W} height={27}>
+        <Badge color="#5EEAD4"
+          icon='<path d="M5 12l5 5L20 7"/>'
+          label="TRANSPARENCIA PARA APOSTADORES"
+          style={{height:27}}/>
+      </Center>
+      <Center top={CFG.badge3Top} width={CFG.badge3W} height={27}>
+        <Badge color="#5EEAD4"
+          icon='<path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>'
+          label="VALIDACIÓN MEDIANTE IA"
+          style={{height:27}}/>
+      </Center>
+    </Box>
+
+    {/* ── BOX 2: Hero con botones ── */}
+    <Box top={CFG.box2Top} height={CFG.box2H}>
+      {/* Pill */}
+      <Center top={CFG.pillTop} width="auto" height="auto">
+        <div style={{whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:6,
+          fontFamily:"'JetBrains Mono',monospace",fontSize:8,
+          color:'rgba(94,234,212,.8)',letterSpacing:'.1em',textTransform:'uppercase'}}>
+          <span style={{width:5,height:5,borderRadius:'50%',background:'#5EEAD4',display:'inline-block'}}/>
+          PRONÓSTICOS · DATOS REALES · VERIFICADO
+        </div>
+      </Center>
+      {/* TRUE STATS AI */}
+      <Center top={CFG.titleTop} width="auto" height="auto">
+        <div style={{whiteSpace:'nowrap',textAlign:'center'}}>
+          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:CFG.titleSize,
+            color:'#EAF2FF',textTransform:'uppercase',letterSpacing:-1}}>TRUE </span>
+          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:CFG.titleSize,
+            color:'#5EEAD4',textTransform:'uppercase',letterSpacing:-1}}>STATS</span>
+          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:CFG.titleSize*.55,
+            color:'#5EEAD4',textTransform:'uppercase',letterSpacing:2,marginLeft:3}}>AI</span>
+        </div>
+      </Center>
+      {/* Botones */}
+      <div style={{position:'absolute',left:CFG.btnsLeft,top:CFG.btnsTop,
+        right:CFG.btnsLeft,display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+        {/* Soy Tipster */}
+        <div onClick={()=>setShowModal(true)} style={{cursor:'pointer'}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,
+            color:`${CFG.colorTipster}b0`,letterSpacing:'.1em',textTransform:'uppercase',marginBottom:4}}>
+            SOY TIPSTER
+          </div>
+          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,
+            fontSize:CFG.titleSize,color:CFG.colorTipster,letterSpacing:-1,
+            lineHeight:1,display:'flex',alignItems:'center',gap:5}}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={CFG.colorTipster}
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
+            </svg>
+            Acceder
+          </div>
+        </div>
+        {/* Separador */}
+        <div style={{width:1,height:36,background:'rgba(94,234,212,.2)',marginBottom:2}}/>
+        {/* Soy Apostador */}
+        <div onClick={entrarApostador} style={{cursor:'pointer',textAlign:'right'}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,
+            color:`${CFG.colorApostador}b0`,letterSpacing:'.1em',textTransform:'uppercase',marginBottom:4}}>
+            SOY APOSTADOR
+          </div>
+          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,
+            fontSize:CFG.titleSize,color:CFG.colorApostador,letterSpacing:-1,
+            lineHeight:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={CFG.colorApostador}
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
+            </svg>
+            Entrar
+          </div>
+        </div>
+      </div>
+    </Box>
+
+    {/* ── MODAL LOGIN ── */}
+    {showModal&&<div style={{position:'absolute',inset:0,background:'rgba(6,10,24,0.92)',
+      display:'flex',alignItems:'center',justifyContent:'center',padding:24,zIndex:50}}>
+      <div style={{background:'#0B1024',borderRadius:16,border:'1px solid rgba(120,170,255,0.2)',
+        padding:24,width:'100%',maxWidth:320}}>
         <Display style={{fontSize:18,display:'block',marginBottom:4}}>Acceso Tipster</Display>
         <Kicker style={{display:'block',marginBottom:20}}>Introduce tu contraseña</Kicker>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <div style={{display:'flex',flexDirection:'column',gap:5}}>
             <Kicker>USUARIO</Kicker>
-            <div style={{height:44,background:'#11183A',borderRadius:8,border:'1px solid rgba(120,170,255,0.22)',padding:'0 14px',display:'flex',alignItems:'center'}}>
+            <div style={{height:44,background:'#11183A',borderRadius:8,
+              border:'1px solid rgba(120,170,255,0.22)',padding:'0 14px',display:'flex',alignItems:'center'}}>
               <Mono style={{fontSize:13,color:'#5EEAD4'}}>truestats</Mono>
             </div>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:5}}>
             <Kicker>CONTRASEÑA</Kicker>
-            <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loginTipster()} placeholder="••••"
-              style={{height:44,background:'#11183A',borderRadius:8,border:'1px solid rgba(120,170,255,0.22)',padding:'0 14px',fontSize:18,color:'#EAF2FF',outline:'none',letterSpacing:4}}/>
+            <input type="password" value={pass} onChange={e=>setPass(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&loginTipster()} placeholder="••••"
+              style={{height:44,background:'#11183A',borderRadius:8,
+                border:'1px solid rgba(120,170,255,0.22)',padding:'0 14px',
+                fontSize:18,color:'#EAF2FF',outline:'none',letterSpacing:4}}/>
           </div>
           {error&&<p style={{fontSize:11,color:'#F87171',textAlign:'center'}}>{error}</p>}
           <BtnPrimary onClick={loginTipster} style={{marginTop:4,opacity:loading?.6:1}}>
             {loading?'Verificando…':'ENTRAR'}
           </BtnPrimary>
-          <button onClick={()=>{setShowModal(false);setPass('');setError('');}} style={{background:'none',border:'none',cursor:'pointer',padding:8}}>
+          <button onClick={()=>{setShowModal(false);setPass('');setError('');}}
+            style={{background:'none',border:'none',cursor:'pointer',padding:8}}>
             <Kicker style={{textAlign:'center',display:'block'}}>Cancelar</Kicker>
           </button>
         </div>
