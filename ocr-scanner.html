@@ -2,1506 +2,391 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TSAI · TrueStats AI — Preview</title>
-<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>TSAI · Nuevo Pick</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#0d1117;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',system-ui,sans-serif}
-.chrome{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px}
-.label{color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase}
-.phone{width:390px;height:844px;background:#060A18;border-radius:50px;overflow:hidden;position:relative;
-  box-shadow:0 50px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.07),inset 0 0 0 2px rgba(255,255,255,0.03)}
-.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;z-index:999;pointer-events:none}
-.homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:130px;height:5px;background:rgba(255,255,255,0.22);border-radius:3px;z-index:999;pointer-events:none}
-#root{position:absolute;inset:0;overflow:hidden}
-::-webkit-scrollbar{display:none}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--a:#5EEAD4;--ai:#04111C;--pos:#34D399;--neg:#F87171;--gold:#FBBF24;
+  --bg0:#060A18;--bg1:#0B1024;--bg2:#11183A;--bg3:#1A2350;
+  --b:rgba(120,170,255,0.12);--bs:rgba(120,170,255,0.22);
+  --i0:#EAF2FF;--i1:rgba(234,242,255,0.70);--i2:rgba(234,242,255,0.45);--i3:rgba(234,242,255,0.22)}
+body{background:var(--bg0);color:var(--i0);font-family:'Space Grotesk',sans-serif;
+  font-size:14px;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom,0)}
+.header{display:flex;align-items:center;justify-content:space-between;
+  padding:52px 18px 14px;border-bottom:1px solid var(--b)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-box{width:32px;height:32px;border-radius:8px;background:rgba(94,234,212,0.12);
+  border:1px solid rgba(94,234,212,0.3);display:flex;align-items:center;
+  justify-content:center;font-weight:900;font-size:12px;color:var(--a)}
+.logo-name{font-weight:700;font-size:14px}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--i2);
+  letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.back{height:34px;padding:0 14px;border-radius:999px;background:transparent;
+  border:1px solid var(--bs);color:var(--i1);font-size:12px;cursor:pointer;
+  text-decoration:none;display:flex;align-items:center}
+.wrap{padding:20px 18px;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.section{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--i2);margin-bottom:8px;display:block}
+.upload{border:1px dashed rgba(94,234,212,0.35);border-radius:12px;padding:24px 16px;
+  text-align:center;cursor:pointer;background:rgba(94,234,212,0.02);
+  position:relative;transition:all .15s}
+.upload:hover{background:rgba(94,234,212,0.06)}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.upload-icon{font-size:28px;margin-bottom:8px}
+.upload-title{font-weight:600;color:var(--i0);margin-bottom:3px}
+.upload-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--i2);
+  letter-spacing:.1em;text-transform:uppercase}
+.preview{display:none;position:relative;border-radius:10px;overflow:hidden}
+.preview img{width:100%;display:block;border-radius:10px}
+.preview-clear{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+  background:rgba(0,0,0,0.7);border:1px solid var(--bs);color:var(--i0);
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--i2)}
+input,select,textarea{background:var(--bg2);border:1px solid var(--bs);border-radius:8px;
+  color:var(--i0);font-family:'Space Grotesk',sans-serif;font-size:13px;
+  padding:10px 12px;outline:none;width:100%;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:rgba(94,234,212,.5)}
+select option{background:var(--bg2)}
+textarea{resize:vertical;min-height:72px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ocr-badge{display:none;align-items:center;gap:6px;padding:6px 10px;margin-top:8px;
+  background:rgba(94,234,212,0.08);border:1px solid rgba(94,234,212,0.3);
+  border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--a)}
+.ocr-badge.visible{display:flex}
+.progress{margin-top:8px;display:none}
+.progress.visible{display:block}
+.progress-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--i2);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;
+  display:flex;align-items:center;gap:6px}
+.spin{width:10px;height:10px;border-radius:50%;border:2px solid var(--bg3);
+  border-top-color:var(--a);animation:spin .7s linear infinite}
+.bar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;background:var(--a);border-radius:2px;transition:width .4s ease}
+.btn-primary{height:48px;width:100%;background:var(--a);color:var(--ai);border:none;
+  border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.04em;
+  text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.pick-card{background:var(--bg1);border:1px solid var(--b);border-radius:12px;padding:14px;
+  display:flex;flex-direction:column;gap:10px}
+.pick-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.pick-cuota{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--a)}
+.pick-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--i2);margin-top:3px}
+.pick-badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--bg3);border:1px solid var(--bs);color:var(--i1)}
+.badge.MAX{background:rgba(94,234,212,.1);border-color:rgba(94,234,212,.4);color:var(--a)}
+.badge.ALTA{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--pos)}
+.badge.MEDIA{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.4);color:var(--gold)}
+.pick-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.btn-win{height:36px;background:rgba(52,211,153,.1);color:var(--pos);border:1px solid rgba(52,211,153,.4);border-radius:8px;font-weight:600;font-size:11px;cursor:pointer}
+.btn-loss{height:36px;background:rgba(248,113,113,.1);color:var(--neg);border:1px solid rgba(248,113,113,.4);border-radius:8px;font-weight:600;font-size:11px;cursor:pointer}
+.btn-void{height:36px;background:var(--bg3);color:var(--i2);border:1px solid var(--bs);border-radius:8px;font-weight:600;font-size:11px;cursor:pointer}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0));left:50%;
+  transform:translateX(-50%) translateY(0);background:var(--bg2);
+  border:1px solid var(--bs);border-radius:999px;padding:9px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--i0);
+  box-shadow:0 8px 28px rgba(0,0,0,.4);white-space:nowrap;z-index:99;
+  pointer-events:none;transition:all .3s}
+.toast.hidden{opacity:0;transform:translateX(-50%) translateY(8px)}
+.toast.ok{border-color:rgba(52,211,153,.4);color:var(--pos)}
+.toast.err{border-color:rgba(248,113,113,.4);color:var(--neg)}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-<div class="chrome">
-  <div class="label">TSAI · TrueStats AI · v2.0</div>
-  <div class="phone">
-    <div class="island"></div>
-    <div class="homebar"></div>
-    <div id="root"></div>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-box">TS</div>
+    <div><div class="logo-name">TrueStats AI</div><div class="logo-sub">Nuevo Pick</div></div>
   </div>
+  <a href="javascript:history.back()" class="back">‹ Volver</a>
 </div>
 
-<script type="text/babel">
-const {useState,useContext,createContext,useEffect,useCallback,useRef} = React;
+<div class="wrap">
 
-// ── Supabase ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://tpjgmqsdypzvhrdxhttz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwamdtcXNkeXB6dmhyZHhodHR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjQxMDAsImV4cCI6MjA5NDcwMDEwMH0.QSLAi_x_cOiXqdXgUmXrysvANY3xQcS-TyNXanBETGQ';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <div class="field">
+    <label>Tipster</label>
+    <select id="tipsterSel" onchange="onTipsterChange()">
+      <option value="">Cargando…</option>
+    </select>
+  </div>
 
-// ── Tokens ────────────────────────────────────────────────────────────────────
-const C={
-  accent:'#5EEAD4',accentInk:'#04111C',accent2:'#A855F7',accent3:'#3B82F6',accent4:'#34D399',
-  positive:'#34D399',negative:'#F87171',gold:'#FBBF24',
-  bg0:'#060A18',bg1:'#0B1024',bg2:'#11183A',bg3:'#1A2350',
-  border:'rgba(120,170,255,0.10)',borderStrong:'rgba(120,170,255,0.20)',
-  ink0:'#FFFFFF',ink1:'rgba(234,242,255,0.70)',ink2:'rgba(234,242,255,0.45)',ink3:'rgba(234,242,255,0.22)',
-};
+  <div class="field">
+    <label>Canal</label>
+    <select id="canalSel" onchange="updateBtn()">
+      <option value="">Selecciona tipster primero</option>
+    </select>
+  </div>
 
-// ── Nav ───────────────────────────────────────────────────────────────────────
-const NavCtx=createContext(null);
-function NavProvider({children}){
-  const [stack,setStack]=useState([{s:'splash',p:{}}]);
-  const push =(s,p={})=>setStack(prev=>[...prev,{s,p}]);
-  const pop  =()=>setStack(prev=>prev.length>1?prev.slice(0,-1):prev);
-  const reset=(s,p={})=>setStack([{s,p}]);
-  const cur=stack[stack.length-1];
-  return <NavCtx.Provider value={{cur,push,pop,reset,canBack:stack.length>1}}>{children}</NavCtx.Provider>;
-}
-const useNav=()=>useContext(NavCtx);
-
-// ── Auth ──────────────────────────────────────────────────────────────────────
-const AuthCtx=createContext(null);
-function AuthProvider({children}){
-  const [session,setSession]=useState(null);
-  const [loading,setLoading]=useState(false);
-  return <AuthCtx.Provider value={{session,setSession,loading}}>{children}</AuthCtx.Provider>;
-}
-const useAuth=()=>useContext(AuthCtx);
-
-// ── Hooks ─────────────────────────────────────────────────────────────────────
-function useTipsters(){
-  const [data,setData]=useState([]);
-  const [loading,setLoading]=useState(true);
-  const [error,setError]=useState(null);
-  useEffect(()=>{
-    sb.from('tipsters_profiles')
-      .select('id,display_name,username,bio,sport_focus,is_verified,has_premium,price_monthly,total_picks,wins,losses,voids,yield_pct,win_rate_pct,profit_units,total_staked,avatar_url,created_at')
-      .order('yield_pct',{ascending:false})
-      .limit(20)
-      .then(({data,error})=>{
-        if(error)setError(error.message);
-        else setData(data||[]);
-        setLoading(false);
-      });
-  },[]);
-  return {data,loading,error};
-}
-
-function usePicks(tipsterId){
-  const [data,setData]=useState([]);
-  const [loading,setLoading]=useState(true);
-  const fetch=useCallback(()=>{
-    if(!tipsterId){setLoading(false);return;}
-    sb.from('boletos')
-      .select('id,casa_apuestas,cuota_total,tipo_apuesta,boleto_texto,stake,estado,tipo_acceso,profit,settled_at,fecha_procesado,nivel_confianza,confianza,analisis,imagen_url')
-      .eq('tipster_id',tipsterId)
-      .order('fecha_procesado',{ascending:false})
-      .limit(15)
-      .then(({data,error})=>{if(!error)setData(data||[]);setLoading(false);});
-  },[tipsterId]);
-  useEffect(()=>{fetch();},[fetch]);
-  return {data,loading,refetch:fetch};
-}
-
-function useDailyStats(tipsterId){
-  const [data,setData]=useState([]);
-  useEffect(()=>{
-    if(!tipsterId)return;
-    sb.from('tipster_daily_stats')
-      .select('fecha,total_picks,profit_units,yield_pct')
-      .eq('tipster_id',tipsterId)
-      .order('fecha',{ascending:true})
-      .limit(90)
-      .then(({data})=>setData(data||[]));
-  },[tipsterId]);
-  return data;
-}
-
-function useMensajes(tipsterId){
-  const [data,setData]=useState([]);
-  const [loading,setLoading]=useState(true);
-  const fetch=useCallback(()=>{
-    if(!tipsterId){setLoading(false);return;}
-    sb.from('mensajes')
-      .select('id,contenido,tipo,created_at,tipster_id')
-      .eq('tipster_id',tipsterId)
-      .in('tipo',['texto','sello'])
-      .order('created_at',{ascending:false})
-      .limit(30)
-      .then(({data,error})=>{if(!error)setData(data||[]);setLoading(false);});
-  },[tipsterId]);
-  useEffect(()=>{fetch();},[fetch]);
-  return {data,loading,refetch:fetch};
-}
-
-function useRacha(tipsterId){
-  const [data,setData]=useState([]);
-  useEffect(()=>{
-    if(!tipsterId)return;
-    sb.from('boletos').select('estado').eq('tipster_id',tipsterId)
-      .in('estado',['ganado','perdido','nulo']).order('settled_at',{ascending:false}).limit(5)
-      .then(({data})=>setData(data||[]));
-  },[tipsterId]);
-  return data;
-}
-
-function useRachasTipsters(tipsterIds){
-  const [rachas,setRachas]=useState({});
-  useEffect(()=>{
-    if(!tipsterIds||!tipsterIds.length)return;
-    sb.from('boletos').select('tipster_id,estado,settled_at')
-      .in('tipster_id',tipsterIds).in('estado',['ganado','perdido','nulo'])
-      .order('settled_at',{ascending:false}).limit(tipsterIds.length*5)
-      .then(({data})=>{
-        const map={};
-        (data||[]).forEach(b=>{if(!map[b.tipster_id])map[b.tipster_id]=[];if(map[b.tipster_id].length<5)map[b.tipster_id].push({estado:b.estado});});
-        setRachas(map);
-      });
-  },[tipsterIds?tipsterIds.join(','):'']);
-  return rachas;
-}
-
-// ── Atoms ─────────────────────────────────────────────────────────────────────
-function Avatar({name='?',size=40,url=null}){
-  const logoTSAI='https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/LOGO%20VIP.jpeg';
-  const finalUrl=url||(name&&name.toLowerCase().includes('vip tsai')?logoTSAI:null);
-  if(finalUrl) return <img src={finalUrl} style={{width:size,height:size,borderRadius:size/2,objectFit:'cover',flexShrink:0}}/>;
-  const s=(name||'?').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-  const bg=['#7a3030','#7a5a30','#307a5a','#305a7a','#5a307a','#7a3060'][s%6];
-  const ini=(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  return <div style={{width:size,height:size,borderRadius:size/2,background:bg,display:'flex',
-    alignItems:'center',justifyContent:'center',flexShrink:0,fontWeight:700,
-    fontSize:Math.round(size*.38),color:'#fff'}}>{ini}</div>;
-}
-
-function RachaBadges({picks,size=12}){
-  const cfg={ganado:{bg:'#34D399',txt:'#04111C',l:'W'},perdido:{bg:'#F87171',txt:'#04111C',l:'L'},nulo:{bg:'#FBBF24',txt:'#04111C',l:'V'}};
-  if(!picks||!picks.length)return null;
-  return <div style={{display:'flex',alignItems:'center',gap:4}}>
-    {picks.map((p,i)=>{const c=cfg[p.estado]||cfg.nulo;return <div key={i} style={{width:size,height:size,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*.55,fontWeight:700,color:c.txt,flexShrink:0}}>{c.l}</div>;})}
-  </div>;
-}
-
-// Ahora Kicker acepta un color 'c' opcional
-function Kicker({c, style={}, children}){
-  return <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:1.4,textTransform:'uppercase',color:c||C.ink2,...style}}>{children}</span>;
-}
-
-function Mono({children,style={}}){return <span style={{fontFamily:"'JetBrains Mono',monospace",...style}}>{children}</span>;}
-
-function Display({children,style={}}){return <span style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,textTransform:'uppercase',letterSpacing:-.5,color:C.ink0,...style}}>{children}</span>;}
-
-// Card permite sobrescribir estilos
-function Card({children,style={},onClick}){return <div onClick={onClick} style={{background:C.bg1,borderRadius:14,border:`1px solid ${C.border}`,...style}}>{children}</div>;}
-
-function Chip({label,active,onClick}){return <button onClick={onClick} style={{flexShrink:0,padding:'6px 12px',borderRadius:999,fontFamily:"'JetBrains Mono',monospace",fontSize:10,textTransform:'uppercase',letterSpacing:1,background:active?C.accent:'transparent',color:active?C.accentInk:C.ink1,border:`1px solid ${active?C.accent:C.borderStrong}`,fontWeight:active?700:500,cursor:'pointer',whiteSpace:'nowrap'}}>{label}</button>;}
-
-function BtnPrimary({children,onClick,style={}}){return <button onClick={onClick} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,height:46,padding:'0 18px',width:'100%',background:C.accent,color:C.accentInk,border:'none',borderRadius:999,fontWeight:700,fontSize:13,letterSpacing:.5,cursor:'pointer',...style}}>{children}</button>;}
-
-function BtnGhost({children,onClick,style={}}){return <button onClick={onClick} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,height:46,padding:'0 16px',width:'100%',background:'rgba(255,255,255,0.03)',color:C.ink0,border:`1px solid ${C.borderStrong}`,borderRadius:999,fontWeight:500,fontSize:13,cursor:'pointer',...style}}>{children}</button>;}
-
-// Pill ahora acepta color para el texto
-function Pill({children, color}){
-  return <div style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 12px',borderRadius:999,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.04)'}}>
-    <div style={{width:5,height:5,borderRadius:3,background:C.accent}}/>
-    <Kicker c={color}>{children}</Kicker>
-  </div>;
-}
-
-function LiveBadge(){return <span style={{display:'inline-flex',alignItems:'center',gap:3,padding:'2px 5px',borderRadius:4,border:'1px solid rgba(248,113,113,0.4)'}}><span style={{width:4,height:4,borderRadius:2,background:C.negative,animation:'pulse 1.5s infinite'}}/><Mono style={{fontSize:8,color:C.negative,fontWeight:700,letterSpacing:1}}>LIVE</Mono></span>;}
-
-function Spinner(){return <div style={{width:20,height:20,borderRadius:10,border:`2px solid ${C.bg3}`,borderTopColor:C.accent,animation:'spin .7s linear infinite'}}/>;}
-
-function EmptyState({icon,title,sub}){
-  return <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'48px 24px',gap:12}}>
-    <div style={{fontSize:36,opacity:.4}}>{icon}</div>
-    <Display style={{fontSize:14,textAlign:'center'}}>{title}</Display>
-    {sub&&<Kicker style={{textAlign:'center',textTransform:'none',letterSpacing:0,fontSize:11,color:C.ink2}}>{sub}</Kicker>}
-  </div>;
-}
-
-function NavHeader({title,right,showBack=true}){
-  const {pop,canBack}=useNav();
-  return <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 14px 12px',background:C.bg0,borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
-    {showBack&&canBack
-      ?<button onClick={pop} style={{width:34,height:34,borderRadius:17,background:C.bg2,border:`1px solid ${C.border}`,color:C.ink0,fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
-      :<div style={{width:34}}/>}
-    <Display style={{fontSize:16}}>{title}</Display>
-    {right??<div style={{width:34}}/>}
-  </div>;
-}
-
-// ── TabBar ────────────────────────────────────────────────────────────────────
-const TABS=[{id:'home',label:'Canales',icon:'⊟'},{id:'ranking',label:'Ranking',icon:'◈'},{id:'market',label:'Comunidad',icon:'◆'},{id:'cuenta',label:'Cuenta',icon:'○'}];
-function TabBar({active,onTab}){
-  return <div style={{flexShrink:0,display:'grid',gridTemplateColumns:'repeat(4,1fr)',padding:'10px 8px 20px',background:C.bg0,borderTop:`1px solid ${C.border}`}}>
-    {TABS.map(t=><button key={t.id} onClick={()=>onTab(t.id)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'5px 0',background:'none',border:'none',cursor:'pointer'}}>
-      <span style={{fontSize:16,color:active===t.id?C.accent:C.ink3}}>{t.icon}</span>
-      <Mono style={{fontSize:9,letterSpacing:1,textTransform:'uppercase',color:active===t.id?C.accent:C.ink2}}>{t.label}</Mono>
-    </button>)}
-  </div>;
-}
-
-// ── SPLASH ────────────────────────────────────────────────────────────────────
-function SplashScreen(){
-  const {setSession}=useAuth();
-  const [showModal,setShowModal]=useState(false);
-  const [pass,setPass]=useState('');
-  const [error,setError]=useState('');
-  const [loading,setLoading]=useState(false);
-
-  // ── CONFIGURACIÓN VISUAL — edita aquí ────────────────────────────────────
-  const CFG = {
-    // ── LOGO ──
-    logoUrl:    'https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png',
-    logoTop:    28,       // posición vertical
-    logoW:      90,       // ancho en px
-    logoH:      80,       // alto en px
-
-    // ── BOX 1 (auditoría) ──
-    box1Top:    155,      // posición vertical
-    box1H:      125,      // alto en px
-
-    // ── BADGE 1: AUDITORÍA PARA TIPSTERS ──
-    badge1Top:  166,      // posición vertical
-    badge1W:    260,      // ancho en px
-    badge1H:    27,       // alto en px
-    badge1Color:'#5EEAD4',// color borde, texto y glow
-    badge1Label:'AUDITORÍA PARA TIPSTERS', // texto
-    badge1Icon: '<rect x="4" y="13" width="3.6" height="7" rx="1"/><rect x="10.2" y="8" width="3.6" height="12" rx="1"/><rect x="16.4" y="4" width="3.6" height="16" rx="1"/>', // SVG path
-    badge1FontSize: 9,    // tamaño de fuente
-    badge1LetterSpacing: '.11em', // espaciado entre letras
-
-    // ── BADGE 2: TRANSPARENCIA PARA APOSTADORES ──
-    badge2Top:  202,
-    badge2W:    260,
-    badge2H:    27,
-    badge2Color:'#5EEAD4',
-    badge2Label:'TRANSPARENCIA PARA APOSTADORES',
-    badge2Icon: '<path d="M5 12l5 5L20 7"/>',
-    badge2FontSize: 9,
-    badge2LetterSpacing: '.11em',
-
-    // ── BADGE 3: VALIDACIÓN MEDIANTE IA ──
-    badge3Top:  238,
-    badge3W:    260,
-    badge3H:    27,
-    badge3Color:'#5EEAD4',
-    badge3Label:'VALIDACIÓN MEDIANTE IA',
-    badge3Icon: '<path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>',
-    badge3FontSize: 9,
-    badge3LetterSpacing: '.11em',
-
-    // ── BOX 2 (hero con botones) ──
-    box2Top:    304,      // posición vertical
-    box2H:      118,      // alto en px
-
-    // ── PILL: PRONÓSTICOS · DATOS REALES · VERIFICADO ──
-    pillTop:         316,           // posición vertical
-    pillText:        'PRONÓSTICOS · DATOS REALES · VERIFICADO', // texto
-    pillColor:       'rgba(94,234,212,.8)', // color texto
-    pillFontSize:    8,             // tamaño fuente
-    pillLetterSpacing: '.1em',      // espaciado letras
-    pillDotColor:    '#5EEAD4',     // color del punto
-    pillDotSize:     5,             // tamaño del punto en px
-    pillGap:         6,             // espacio entre punto y texto
-
-    // ── TRUE STATS AI ──
-    titleTop:        334,           // posición vertical
-    titleSize:       22,            // tamaño fuente "TRUE STATS"
-    titleColorLeft:  '#EAF2FF',     // color "TRUE"
-    titleColorRight: '#5EEAD4',     // color "STATS"
-    titleAIColor:    '#5EEAD4',     // color "AI"
-    titleAISize:     12,            // tamaño fuente "AI" (o usa titleSize*.55)
-    titleAISpacing:  2,             // letter-spacing "AI"
-    titleAIMargin:   3,             // margen izquierdo "AI"
-    titleFont:       "'Space Grotesk',sans-serif", // fuente del título
-    titleWeight:     700,           // peso fuente
-    titleTracking:   -1,            // letter-spacing título
-
-    // ── BOTONES ──
-    btnsTop:         374,           // posición vertical
-    btnsLeft:        36,            // margen izq/der
-    btnFont:         "'Space Grotesk',sans-serif", // fuente botones
-    btnWeight:       700,           // peso fuente
-    btnSize:         22,            // tamaño fuente "Acceder/Entrar"
-    btnTracking:     -1,            // letter-spacing
-    btnIconSize:     16,            // tamaño icono SVG
-    btnIconStroke:   2.5,           // grosor icono
-
-    // SOY TIPSTER
-    colorTipster:    '#34D399',     // color principal
-    labelTipster:    'SOY TIPSTER', // texto etiqueta superior
-    textTipster:     'Acceder',     // texto botón
-    labelFontTipster:"'JetBrains Mono',monospace", // fuente etiqueta
-    labelSizeTipster: 8,            // tamaño etiqueta
-    labelSpacingTipster: '.1em',    // espaciado etiqueta
-    labelMarginTipster: 4,          // margen inferior etiqueta
-
-    // SOY APOSTADOR
-    colorApostador:  '#A855F7',
-    labelApostador:  'SOY APOSTADOR',
-    textApostador:   'Entrar',
-    labelFontApostador:"'JetBrains Mono',monospace",
-    labelSizeApostador: 8,
-    labelSpacingApostador: '.1em',
-    labelMarginApostador: 4,
-
-    // SEPARADOR VERTICAL entre botones
-    separadorColor:  'rgba(94,234,212,.2)', // color
-    separadorW:      1,             // grosor en px
-    separadorH:      36,            // alto en px
-    separadorMargin: 2,             // margen inferior
-  };
-  // ─────────────────────────────────────────────────────────────────────────
-
-  const entrarApostador=()=>setSession({user:{id:'apostador',role:'apostador'}});
-
-  const loginTipster=async()=>{
-    setLoading(true);setError('');
-    const {data,error}=await sb.from('users')
-      .select('id,username,role,is_admin,password')
-      .eq('username','truestats')
-      .eq('password',pass)
-      .single();
-    setLoading(false);
-    if(error||!data){setError('Contraseña incorrecta');return;}
-    setSession({user:{id:data.id,username:data.username,role:data.role,is_admin:data.is_admin}});
-  };
-
-  // Badge reutilizable
-  const Badge=({color,icon,label,style={}})=><div style={{
-    display:'flex',alignItems:'center',justifyContent:'center',
-    gap:7,borderRadius:999,
-    border:`1px solid ${color}80`,background:`${color}12`,
-    boxShadow:`0 0 20px -7px ${color}88,inset 0 0 18px -11px ${color}b0`,
-    color,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,
-    textTransform:'uppercase',letterSpacing:'.11em',fontSize:9,
-    backdropFilter:'blur(6px)',padding:'0 14px',...style,
-  }}>
-    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={color}
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-      dangerouslySetInnerHTML={{__html:icon}}/>
-    {label}
-  </div>;
-
-  // Box container reutilizable
-  const Box=({top,height,children})=><>
-    <div style={{
-      position:'absolute',left:24,top,width:'calc(100% - 48px)',height,
-      borderRadius:22,border:'1px solid rgba(94,234,212,0.4)',
-      background:'rgba(94,234,212,0.06)',
-      boxShadow:'rgba(94,234,212,0.5) 0px 0px 40px -20px inset',
-    }}/>
-    {children}
-  </>;
-
-  // Posicionador centrado
-  const Center=({top,width,height,children})=><div style={{
-    position:'absolute',left:'50%',top,
-    transform:'translateX(-50%)',width,height,
-  }}>{children}</div>;
-
-  return <div style={{
-    position:'relative',height:'100%',overflow:'hidden',
-    background:'radial-gradient(90% 50% at 50% 20%,rgba(94,234,212,.10),transparent 60%),radial-gradient(80% 60% at 80% 80%,rgba(168,85,247,.10),transparent 60%),radial-gradient(80% 60% at 20% 100%,rgba(59,130,246,.08),transparent 60%),#060A18',
-    color:'#EAF2FF',
-  }}>
-    {/* Estrellas */}
-    <div style={{position:'absolute',inset:0,opacity:.7,pointerEvents:'none',
-      backgroundImage:'radial-gradient(circle at 20% 30%,rgba(94,234,212,.6) 0,rgba(94,234,212,.6) 1px,transparent 1.5px),radial-gradient(circle at 70% 18%,rgba(168,85,247,.5) 0,rgba(168,85,247,.5) 1px,transparent 1.5px),radial-gradient(circle at 85% 60%,rgba(59,130,246,.5) 0,rgba(59,130,246,.5) 1px,transparent 1.5px),radial-gradient(circle at 30% 80%,rgba(94,234,212,.4) 0,rgba(94,234,212,.4) 1px,transparent 1.5px),radial-gradient(circle at 10% 60%,rgba(120,180,255,.4) 0,rgba(120,180,255,.4) 1px,transparent 1.5px),radial-gradient(circle at 90% 92%,rgba(94,234,212,.4) 0,rgba(94,234,212,.4) 1px,transparent 1.5px)',
-    }}/>
-    {/* Marco */}
-    <div style={{position:'absolute',inset:18,borderRadius:32,
-      border:'1px solid rgba(94,234,212,.22)',
-      boxShadow:'rgba(94,234,212,.22) 0px 0px 60px -10px,rgba(94,234,212,.15) 0px 0px 60px -20px inset',
-      pointerEvents:'none',
-    }}/>
-
-    {/* ── LOGO ── */}
-    <div style={{position:'absolute',left:'50%',top:CFG.logoTop,transform:'translateX(-50%)'}}>
-      <img src={CFG.logoUrl} style={{width:CFG.logoW,height:CFG.logoH,objectFit:'contain',
-        filter:'drop-shadow(rgba(94,234,212,.35) 0px 0px 32px) drop-shadow(rgba(0,0,0,.5) 0px 2px 4px)'}}/>
+  <div>
+    <span class="section">Imagen del boleto</span>
+    <div class="upload" id="uploadZone">
+      <input type="file" id="imgInput" accept="image/*" onchange="onImagen(this)"/>
+      <div class="upload-icon">📸</div>
+      <div class="upload-title">Sube la captura del boleto</div>
+      <div class="upload-sub">Bet365 · Winamax · JPG / PNG</div>
     </div>
-
-    {/* ── BOX 1: Auditoría ── */}
-    <Box top={CFG.box1Top} height={CFG.box1H}>
-      <Center top={CFG.badge1Top} width={CFG.badge1W} height={CFG.badge1H}>
-        <Badge color={CFG.badge1Color}
-          icon={CFG.badge1Icon}
-          label={CFG.badge1Label}
-          style={{height:CFG.badge1H,fontSize:CFG.badge1FontSize,letterSpacing:CFG.badge1LetterSpacing,boxShadow:`0 0 20px -7px ${CFG.badge1Color}88,inset 0 0 18px -11px ${CFG.badge1Color}b0`}}/>
-      </Center>
-      <Center top={CFG.badge2Top} width={CFG.badge2W} height={CFG.badge2H}>
-        <Badge color={CFG.badge2Color}
-          icon={CFG.badge2Icon}
-          label={CFG.badge2Label}
-          style={{height:CFG.badge2H,fontSize:CFG.badge2FontSize,letterSpacing:CFG.badge2LetterSpacing}}/>
-      </Center>
-      <Center top={CFG.badge3Top} width={CFG.badge3W} height={CFG.badge3H}>
-        <Badge color={CFG.badge3Color}
-          icon={CFG.badge3Icon}
-          label={CFG.badge3Label}
-          style={{height:CFG.badge3H,fontSize:CFG.badge3FontSize,letterSpacing:CFG.badge3LetterSpacing}}/>
-      </Center>
-    </Box>
-
-    {/* ── BOX 2: Hero con botones ── */}
-    <Box top={CFG.box2Top} height={CFG.box2H}>
-      {/* Pill */}
-      <Center top={CFG.pillTop} width="auto" height="auto">
-        <div style={{whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:CFG.pillGap,
-          fontFamily:"'JetBrains Mono',monospace",fontSize:CFG.pillFontSize,
-          color:CFG.pillColor,letterSpacing:CFG.pillLetterSpacing,textTransform:'uppercase'}}>
-          <span style={{width:CFG.pillDotSize,height:CFG.pillDotSize,borderRadius:'50%',background:CFG.pillDotColor,display:'inline-block'}}/>
-          {CFG.pillText}
-        </div>
-      </Center>
-      {/* TRUE STATS AI */}
-      <Center top={CFG.titleTop} width="auto" height="auto">
-        <div style={{whiteSpace:'nowrap',textAlign:'center'}}>
-          <span style={{fontFamily:CFG.titleFont,fontWeight:CFG.titleWeight,fontSize:CFG.titleSize,
-            color:CFG.titleColorLeft,textTransform:'uppercase',letterSpacing:CFG.titleTracking}}>TRUE </span>
-          <span style={{fontFamily:CFG.titleFont,fontWeight:CFG.titleWeight,fontSize:CFG.titleSize,
-            color:CFG.titleColorRight,textTransform:'uppercase',letterSpacing:CFG.titleTracking}}>STATS</span>
-          <span style={{fontFamily:CFG.titleFont,fontWeight:CFG.titleWeight,fontSize:CFG.titleAISize,
-            color:CFG.titleAIColor,textTransform:'uppercase',letterSpacing:CFG.titleAISpacing,marginLeft:CFG.titleAIMargin}}>AI</span>
-        </div>
-      </Center>
-      {/* Botones */}
-      <div style={{position:'absolute',left:CFG.btnsLeft,top:CFG.btnsTop,
-        right:CFG.btnsLeft,display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
-        {/* Soy Tipster */}
-        <div onClick={()=>setShowModal(true)} style={{cursor:'pointer'}}>
-          <div style={{fontFamily:CFG.labelFontTipster,fontSize:CFG.labelSizeTipster,
-            color:`${CFG.colorTipster}b0`,letterSpacing:CFG.labelSpacingTipster,
-            textTransform:'uppercase',marginBottom:CFG.labelMarginTipster}}>
-            {CFG.labelTipster}
-          </div>
-          <div style={{fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
-            fontSize:CFG.btnSize,color:CFG.colorTipster,letterSpacing:CFG.btnTracking,
-            lineHeight:1,display:'flex',alignItems:'center',gap:5}}>
-            <svg viewBox="0 0 24 24" width={CFG.btnIconSize} height={CFG.btnIconSize} fill="none"
-              stroke={CFG.colorTipster} strokeWidth={CFG.btnIconStroke}
-              strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
-            </svg>
-            {CFG.textTipster}
-          </div>
-        </div>
-        {/* Separador */}
-        <div style={{width:CFG.separadorW,height:CFG.separadorH,
-          background:CFG.separadorColor,marginBottom:CFG.separadorMargin}}/>
-        {/* Soy Apostador */}
-        <div onClick={entrarApostador} style={{cursor:'pointer',textAlign:'right'}}>
-          <div style={{fontFamily:CFG.labelFontApostador,fontSize:CFG.labelSizeApostador,
-            color:`${CFG.colorApostador}b0`,letterSpacing:CFG.labelSpacingApostador,
-            textTransform:'uppercase',marginBottom:CFG.labelMarginApostador}}>
-            {CFG.labelApostador}
-          </div>
-          <div style={{fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
-            fontSize:CFG.btnSize,color:CFG.colorApostador,letterSpacing:CFG.btnTracking,
-            lineHeight:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
-            <svg viewBox="0 0 24 24" width={CFG.btnIconSize} height={CFG.btnIconSize} fill="none"
-              stroke={CFG.colorApostador} strokeWidth={CFG.btnIconStroke}
-              strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
-            </svg>
-            {CFG.textApostador}
-          </div>
-        </div>
-      </div>
-    </Box>
-
-    {/* ── MODAL LOGIN ── */}
-    {showModal&&<div style={{position:'absolute',inset:0,background:'rgba(6,10,24,0.92)',
-      display:'flex',alignItems:'center',justifyContent:'center',padding:24,zIndex:50}}>
-      <div style={{background:'#0B1024',borderRadius:16,border:'1px solid rgba(120,170,255,0.2)',
-        padding:24,width:'100%',maxWidth:320}}>
-        <Display style={{fontSize:18,display:'block',marginBottom:4}}>Acceso Tipster</Display>
-        <Kicker style={{display:'block',marginBottom:20}}>Introduce tu contraseña</Kicker>
-        <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          <div style={{display:'flex',flexDirection:'column',gap:5}}>
-            <Kicker>USUARIO</Kicker>
-            <div style={{height:44,background:'#11183A',borderRadius:8,
-              border:'1px solid rgba(120,170,255,0.22)',padding:'0 14px',display:'flex',alignItems:'center'}}>
-              <Mono style={{fontSize:13,color:'#5EEAD4'}}>truestats</Mono>
-            </div>
-          </div>
-          <div style={{display:'flex',flexDirection:'column',gap:5}}>
-            <Kicker>CONTRASEÑA</Kicker>
-            <input type="password" value={pass} onChange={e=>setPass(e.target.value)}
-              onKeyDown={e=>e.key==='Enter'&&loginTipster()} placeholder="••••"
-              style={{height:44,background:'#11183A',borderRadius:8,
-                border:'1px solid rgba(120,170,255,0.22)',padding:'0 14px',
-                fontSize:18,color:'#EAF2FF',outline:'none',letterSpacing:4}}/>
-          </div>
-          {error&&<p style={{fontSize:11,color:'#F87171',textAlign:'center'}}>{error}</p>}
-          <BtnPrimary onClick={loginTipster} style={{marginTop:4,opacity:loading?.6:1}}>
-            {loading?'Verificando…':'ENTRAR'}
-          </BtnPrimary>
-          <button onClick={()=>{setShowModal(false);setPass('');setError('');}}
-            style={{background:'none',border:'none',cursor:'pointer',padding:8}}>
-            <Kicker style={{textAlign:'center',display:'block'}}>Cancelar</Kicker>
-          </button>
-        </div>
-      </div>
-    </div>}
-  </div>;
-}
-
-const ECO=[
-  {title:'Auditoría AI',sub:'100% Segura',color:'#5EEAD4',bg:'rgba(94,234,212,0.07)'},
-  {title:'Academia Pro',sub:'Control y Gestión',color:'#A855F7',bg:'rgba(168,85,247,0.07)'},
-  {title:'Scanner AI',sub:'TimeStamp · Real time',color:'#3B82F6',bg:'rgba(59,130,246,0.07)'},
-  {title:'Comunidad',sub:'Espacio para todos',color:'#34D399',bg:'rgba(52,211,153,0.07)'},
-];
-const SPORTS=['Todos','Fútbol','Baloncesto','Tenis'];
-
-function HomeScreen({onTab}){
-  const {push}=useNav();
-  const {data:tipsters,loading,error}=useTipsters();
-  const [sport,setSport]=useState('Todos');
-  const rachasTipsters=useRachasTipsters(tipsters.map(t=>t.id));
-
-  const filtered = sport==='Todos' ? tipsters : tipsters.filter(t=>
-    (t.sport_focus||[]).some(s=>s.toLowerCase().includes(sport.toLowerCase()))
-  );
-
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    {/* Topbar */}
-    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 16px 12px',flexShrink:0}}>
-      <div style={{display:'flex',alignItems:'center',gap:10}}>
-        <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/logos/logo-truestats-transparent.png" style={{width:32,height:32,borderRadius:8,objectFit:'contain'}}/>
-        <div style={{borderLeft:`1px solid ${C.borderStrong}`,paddingLeft:10}}>
-          <Kicker>TrueStats AI</Kicker>
-          <div><Mono style={{fontSize:10,color:C.accent,letterSpacing:2}}>v2.0</Mono></div>
-        </div>
-      </div>
-      <div style={{display:'flex',gap:8}}>
-        <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
-      </div>
+    <div class="preview" id="previewWrap">
+      <img id="previewImg" src="" alt=""/>
+      <button class="preview-clear" onclick="clearImagen()">✕</button>
     </div>
-    <div style={{flex:1,overflowY:'auto'}}>
-      {/* Hero */}
-      <div style={{padding:'0 16px 18px'}}>
-        <Card style={{background:'#0F1638',border:`1px solid ${C.borderStrong}`,padding:18}}>
-         <div style={{display:'flex',justifyContent:'center',marginBottom:12}}>
-  {/* Fíjate: pasamos 'color' como atributo, no 'style' */}
-  <Pill color="#FFFFFF">PRONÓSTICOS · DATOS REALES · VERIFICADO</Pill>
+    <div class="progress" id="ocrProgress">
+      <div class="progress-label"><div class="spin"></div><span id="ocrLabel">Extrayendo cuota…</span></div>
+      <div class="bar"><div class="bar-fill" id="ocrBar" style="width:0%"></div></div>
+    </div>
+    <div class="ocr-badge" id="ocrBadge">
+      ⚡ Cuota OCR: <strong id="ocrCuotaVal"></strong><span id="ocrCasaVal" style="color:var(--i2)"></span>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="field">
+      <label>Cuota</label>
+      <input type="number" id="fCuota" step="0.01" min="1" placeholder="1.85" oninput="updateBtn()"/>
+    </div>
+    <div class="field">
+      <label>Stake (u)</label>
+      <input type="number" id="fStake" step="0.5" min="0.5" placeholder="1.5" value="1.5"/>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="field">
+      <label>Confianza</label>
+      <select id="fConfianza">
+        <option value="MAX">MAX</option>
+        <option value="ALTA">ALTA</option>
+        <option value="MEDIA" selected>MEDIA</option>
+        <option value="BAJA">BAJA</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <select id="fTipo">
+        <option value="pre-partido">Pre-partido</option>
+        <option value="live">Live</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Categoría</label>
+    <select id="fCategoria">
+      <option value="gratis">Gratis</option>
+      <option value="premium">Premium</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Análisis personal</label>
+    <textarea id="fAnalisis" placeholder="Razonamiento del pick, contexto del partido…"></textarea>
+  </div>
+
+  <button class="btn-primary" id="submitBtn" onclick="enviarPick()" disabled>
+    📤 PUBLICAR PICK
+  </button>
+
+  <div id="pendientesWrap" style="display:none">
+    <span class="section" style="margin-top:4px">Picks pendientes de liquidar</span>
+    <div id="pendientesList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
 </div>
-          <Display style={{fontSize:30,display:'block',textAlign:'center',marginBottom:4}}>
-            TRUE <span style={{color:C.accent}}>STATS</span><span style={{fontSize:15,color:C.ink1,fontWeight:500}}> AI</span>
-          </Display>
-          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,textTransform:'uppercase',letterSpacing:1.5,color:C.ink1,textAlign:'center',marginBottom:14}}>
-            La <span style={{color:C.accent}}>verdad</span> detrás de cada <span style={{color:C.accent}}>pick</span>
-          </p>
-          <div style={{display:'flex',justifyContent:'space-between',paddingTop:12,borderTop:`1px solid ${C.border}`}}>
-            {[
-              {l:'Top yield',v:tipsters.length?`+${Math.max(...tipsters.map(t=>parseFloat(t.yield_pct)||0)).toFixed(1)}`:'—',u:'%',hi:true},
-              {l:'Tips audit.',v:tipsters.reduce((a,t)=>a+(t.total_picks||0),0)||'—'},
-              {l:'Tipsters',v:tipsters.length||'—'},
-            ].map(s=><div key={s.l}>
-              <Kicker>{s.l}</Kicker>
-              <div><Mono style={{fontSize:20,fontWeight:600,color:s.hi?C.accent:C.ink0}}>{s.v}{s.u&&<span style={{fontSize:10,color:C.ink2}}>{s.u}</span>}</Mono></div>
-            </div>)}
-          </div>
-        </Card>
-      </div>
-      {/* Eco */}
-      <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',padding:'0 16px 12px'}}>
-        <Display style={{fontSize:14}}>Ecosistema</Display>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,padding:'0 16px 18px'}}>
-        {ECO.map(e=><div key={e.title} style={{borderRadius:12,border:`1px solid ${e.color}55`,background:e.bg,padding:11,position:'relative',cursor:'pointer'}}>
-          {e.badge&&<div style={{position:'absolute',top:7,right:7,border:`1px solid ${e.color}40`,borderRadius:3,padding:'2px 5px'}}><Kicker c={e.color} style={{fontSize:7}}>{e.badge}</Kicker></div>}
-          <div style={{fontSize:18,color:e.color,marginBottom:8}}>◈</div>
-          <div style={{fontSize:13,fontWeight:600,color:C.ink0,lineHeight:1.2}}>{e.title}</div>
-          <div style={{fontSize:10,color:C.ink2,marginTop:3}}>{e.sub}</div>
-        </div>)}
-      </div>
-      {/* Sport filter */}
-      <div style={{display:'flex',gap:6,overflowX:'auto',padding:'0 16px 14px',scrollbarWidth:'none'}}>
-        {SPORTS.map(s=><Chip key={s} label={s} active={sport===s} onClick={()=>setSport(s)}/>)}
-      </div>
-      {/* Channel list */}
-      <div style={{padding:'0 16px'}}>
-        <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:12}}>
-          <Display style={{fontSize:14}}>Canales</Display>
-          <Kicker>{loading?'Cargando…':`${filtered.length} tipsters`}</Kicker>
-        </div>
-        {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
-        {error&&<EmptyState icon="⚠️" title="Error cargando datos" sub={error}/>}
-        {!loading&&!error&&filtered.length===0&&<EmptyState icon="🔍" title="Sin tipsters" sub="No hay tipsters para este deporte"/>}
-        <div style={{display:'flex',flexDirection:'column',gap:8,paddingBottom:24,animation:'fadeIn .3s ease'}}>
-          {filtered.map(t=><Card key={t.id} onClick={()=>push('chat',{tipster:t})} style={{padding:13,display:'flex',gap:10,alignItems:'center',cursor:'pointer'}}>
-            <Avatar name={t.display_name||t.username||'?'} size={44} url={t.avatar_url}/>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
-                <span style={{fontSize:14,fontWeight:600,color:C.ink0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.display_name||t.username||'Tipster'}</span>
-                {t.is_verified&&<span style={{fontSize:11,color:C.accent}}>✓</span>}
-                {t.has_premium&&<span style={{fontSize:11,color:C.gold}}>🔒</span>}
-              </div>
-              <Kicker>{(t.sport_focus||[]).join(' · ')||'Multi-deporte'} · {t.total_picks||0} picks</Kicker>
-              <div style={{display:'flex',alignItems:'center',gap:5,marginTop:4}}>
-                <RachaBadges picks={rachasTipsters[t.id]||[]} size={13}/>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:5,marginTop:5}}>
-                <span style={{fontSize:11,color:C.ink1}}>
-                  {t.wins||0}W · {t.losses||0}L · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'Sin datos'}
-                </span>
-              </div>
-            </div>
-            <div style={{textAlign:'right',flexShrink:0}}>
-              <Mono style={{fontSize:15,fontWeight:600,display:'block',
-                color:parseFloat(t.yield_pct)>0?C.accent:parseFloat(t.yield_pct)<0?C.negative:C.ink2}}>
-                {t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(2)}%`:'—'}
-              </Mono>
-              <Kicker style={{display:'block',marginTop:3}}>yield</Kicker>
-              <Mono style={{fontSize:10,color:C.ink2,display:'block',marginTop:2}}>
-                {t.profit_units?`${parseFloat(t.profit_units)>0?'+':''}${parseFloat(t.profit_units).toFixed(1)}u`:''}
-              </Mono>
-            </div>
-          </Card>)}
-        </div>
-      </div>
-    </div>
-    <TabBar active="home" onTab={onTab}/>
-  </div>;
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="supabase-client.js"></script>
+<script src="ocr-scanner.js"></script>
+<script src="picks.js"></script>
+<script>
+let imgBase64 = null;
+let casaOCR   = '';
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const tipsterIdParam = params.get('tipster');
+  const tipsterNameParam = params.get('tipsterName');
+
+  const { data } = await sb.from('tipsters_profiles')
+    .select('id, display_name, username').order('display_name');
+  const sel = document.getElementById('tipsterSel');
+  sel.innerHTML = '<option value="">Selecciona tipster…</option>' +
+    (data||[]).map(t => `<option value="${t.id}">${t.display_name||t.username}</option>`).join('');
+
+  // Pre-seleccionar tipster si viene por URL
+  if(tipsterIdParam) {
+    sel.value = tipsterIdParam;
+    onTipsterChange();
+  }
 }
 
-// ── CHAT (picks reales del tipster) ───────────────────────────────────────────
-function ChatScreen({params,onTab}){
-  const {push}=useNav();
-  const t=params?.tipster??{display_name:'GalloVIP'};
-  const [showJoin,setShowJoin]=useState(null); // null=no mostrar, 'ask'=pedir nombre, 'joined'=unido
-  const {data:picks,loading,refetch}=usePicks(t.id);
-  const rachaChat=useRacha(t.id);
-
-  // Apostador: mostrar ventana de unirse antes del chat
-  useEffect(()=>{
-    if(esApostador){
-      const joined=localStorage.getItem('joined_'+t.id);
-      if(!joined) setShowJoin('ask');
-      else setShowJoin('joined');
-    }
-  },[esApostador,t.id]);
-  const {data:mensajes,refetch:refetchMensajes}=useMensajes(t.id);
-  const [msg,setMsg]=useState('');
-  const [sending,setSending]=useState(false);
-  const [liquidando,setLiquidando]=useState(null);
-  const chatEndRef=useRef(null);
-  useEffect(()=>{if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[picks,mensajes]); // pick id abierto
-
-  // Cargar usuarios para el selector
-
-  // ¿Puede gestionar este canal?
-  const {session}=useAuth();
-const esTipster=session?.user?.is_admin||session?.user?.role==='tipster';
-const esApostador=session?.user?.role==='apostador';
-const puedeGestionar=esTipster;
-
-  // Liquidar pick
-async function liquidar(pickId, resultado){
-  setLiquidando(null);
-  const {data:boleto}=await sb.from('boletos').select('stake,cuota_total,tipster_id,tipo_acceso,fecha_procesado,casa_apuestas,tipo_apuesta,imagen_url,analisis,nivel_confianza,confianza').eq('id',pickId).single();
-  const stake=parseFloat(boleto.stake)||0;
-  const cuota=parseFloat(boleto.cuota_total)||0;
-  let profit=0;
-  if(resultado==='ganado') profit=Math.round((stake*cuota-stake)*100)/100;
-  else if(resultado==='perdido') profit=-stake;
-
-  // Actualizar boleto
-  await sb.from('boletos').update({estado:resultado,profit,settled_at:new Date().toISOString()}).eq('id',pickId);
-
-  // Actualizar stats globales via RPC
-const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
-    p_tipster_id:boleto.tipster_id,
-    p_resultado:resultado,
-    p_stake:stake,
-    p_profit:profit,
-  });
-  console.log('RPC result:', rpcData, rpcError);
-  // Upsert stats diarias
-  const fecha=new Date().toISOString().split('T')[0];
-  const cat=boleto.tipo_acceso==='premium'?'premium':'free';
-  const {data:existing}=await sb.from('tipster_daily_stats')
-    .select('*').eq('tipster_id',boleto.tipster_id)
-    .eq('fecha',fecha).eq('categoria',cat).maybeSingle();
-  if(existing){
-    await sb.from('tipster_daily_stats').update({
-      picks_ganados:  existing.picks_ganados +(resultado==='ganado' ?1:0),
-      picks_perdidos: existing.picks_perdidos+(resultado==='perdido'?1:0),
-      picks_nulos:    existing.picks_nulos   +(resultado==='nulo'   ?1:0),
-      total_picks:    existing.total_picks+1,
-      profit_units:   parseFloat(existing.profit_units)+profit,
-      total_staked:   parseFloat(existing.total_staked)+stake,
-      yield_pct:      parseFloat(existing.total_staked)+stake>0?Math.round(((parseFloat(existing.profit_units)+profit)/(parseFloat(existing.total_staked)+stake))*10000)/100:0,
-    }).eq('id',existing.id);
+async function onTipsterChange() {
+  const tid  = document.getElementById('tipsterSel').value;
+  const cSel = document.getElementById('canalSel');
+  if(!tid){ cSel.innerHTML='<option value="">Selecciona tipster primero</option>'; return; }
+  const { data } = await sb.from('canales').select('id,nombre,tipo').eq('tipster_id',tid).eq('activo',true);
+  if(data&&data.length){
+    cSel.innerHTML = data.map(c=>`<option value="${c.id}">${c.nombre} (${c.tipo})</option>`).join('');
+    // Seleccionar el canal Free por defecto
+    const freeCanal = data.find(c=>c.tipo==='gratis')||data[0];
+    if(freeCanal) cSel.value = freeCanal.id;
   } else {
-    await sb.from('tipster_daily_stats').insert({
-      tipster_id:boleto.tipster_id,fecha,categoria:cat,
-      total_picks:1,
-      picks_ganados:  resultado==='ganado' ?1:0,
-      picks_perdidos: resultado==='perdido'?1:0,
-      picks_nulos:    resultado==='nulo'   ?1:0,
-      profit_units:profit,total_staked:stake,
-      yield_pct:stake>0?Math.round((profit/stake)*10000)/100:0,
+    cSel.innerHTML = '<option value="">Sin canales</option>';
+  }
+  updateBtn();
+  cargarPendientes(tid);
+}
+
+function updateBtn() {
+  document.getElementById('submitBtn').disabled =
+    !document.getElementById('tipsterSel').value ||
+    !document.getElementById('canalSel').value   ||
+    !document.getElementById('fCuota').value;
+}
+
+async function onImagen(input) {
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('previewImg').src = URL.createObjectURL(file);
+  document.getElementById('previewWrap').style.display = 'block';
+  document.getElementById('uploadZone').style.display  = 'none';
+  showProg(true, 'Enviando a Vision…', 35);
+  try {
+    imgBase64 = await fileToBase64(file);
+    showProg(true, 'Extrayendo cuota…', 70);
+    const { cuota, casa } = await procesarImagen(imgBase64);
+    showProg(false);
+    if(cuota){
+      document.getElementById('fCuota').value   = cuota;
+      document.getElementById('ocrCuotaVal').textContent = cuota;
+      document.getElementById('ocrCasaVal').textContent  = casa ? ` · ${casa}` : '';
+      document.getElementById('ocrBadge').classList.add('visible');
+      casaOCR = casa || '';
+    } else {
+      toast('Sin cuota detectada — introdúcela manual','err');
+    }
+  } catch(e){ showProg(false); toast('OCR: '+e.message,'err'); }
+  updateBtn();
+}
+
+function clearImagen(){
+  imgBase64=null; casaOCR='';
+  document.getElementById('previewWrap').style.display='none';
+  document.getElementById('uploadZone').style.display='block';
+  document.getElementById('imgInput').value='';
+  document.getElementById('ocrBadge').classList.remove('visible');
+  document.getElementById('fCuota').value='';
+  updateBtn();
+}
+
+async function enviarPick(){
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Publicando…';
+  try{
+    let imagenUrl=null;
+    if(imgBase64){
+      const fname=`picks/${document.getElementById('tipsterSel').value}/${Date.now()}.jpg`;
+      const arr=new Uint8Array(atob(imgBase64).split('').map(c=>c.charCodeAt(0)));
+      const {data:up,error:ue}=await sb.storage.from('boletos').upload(fname,new Blob([arr],{type:'image/jpeg'}),{contentType:'image/jpeg'});
+      if(!ue) imagenUrl=sb.storage.from('boletos').getPublicUrl(up.path).data.publicUrl;
+    }
+    const id=await crearPick({
+      tipster_id:document.getElementById('tipsterSel').value,
+      canal_id:document.getElementById('canalSel').value,
+      datos:{
+        cuota:document.getElementById('fCuota').value,
+        stake:document.getElementById('fStake').value,
+        nivel_confianza:document.getElementById('fConfianza').value,
+        tipo_partido:document.getElementById('fTipo').value,
+        categoria:document.getElementById('fCategoria').value,
+        analisis:document.getElementById('fAnalisis').value,
+        casa_apuestas:casaOCR,
+      },
+      imagen_url:imagenUrl,
     });
-  }
-  // Publicar sello en el chat
-    const sellos={ganado:'🏆',perdido:'❌',nulo:'➖'};
-    const colores={ganado:'#34D399',perdido:'#F87171',nulo:'#FBBF24'};
-    const {data:canalSello}=await sb.from('canales').select('id').eq('tipster_id',boleto.tipster_id).limit(1).single();
-    if(canalSello){
-        const {error:selloErr}=await sb.from('mensajes').insert({
-        canal_id:canalSello.id,
-        tipster_id:boleto.tipster_id,
-        boleto_id:pickId,
-        tipo:'sello',
-        contenido:JSON.stringify({
-          resultado,profit,stake,
-          cuota:boleto.cuota_total,
-          emoji:sellos[resultado]||'➖',
-          color:colores[resultado],
-          // Datos del pick para renderizar la tarjeta completa
-          casa_apuestas:boleto.casa_apuestas,
-          tipo_apuesta:boleto.tipo_apuesta,
-          tipo_acceso:boleto.tipo_acceso,
-          imagen_url:boleto.imagen_url,
-          analisis:boleto.analisis,
-          nivel_confianza:boleto.nivel_confianza,
-          confianza:boleto.confianza,
-          fecha_procesado:boleto.fecha_procesado,
-        }),
-        created_at:new Date().toISOString(),
-      });
-      if(selloErr)console.error('Sello error:',selloErr);
-      else console.log('Sello publicado OK');
-    }
-    refetch();
-    refetchMensajes();
-  }
+    toast(`✓ Pick #${id} publicado`,'ok');
+    resetForm();
+    cargarPendientes(document.getElementById('tipsterSel').value);
+  }catch(e){toast('✗ '+e.message,'err');}
+  btn.disabled=false; btn.textContent='📤 PUBLICAR PICK';
+  updateBtn();
+}
 
-  // Enviar mensaje de texto
-  async function enviarMensaje(){
-    if(!msg.trim()||!puedeGestionar)return;
-    setSending(true);
-    // Buscar canal del tipster
-    const {data:canal}=await sb.from('canales').select('id').eq('tipster_id',t.id).limit(1).single();
-    if(canal){
-      await sb.from('mensajes').insert({
-        canal_id:canal.id,
-        tipster_id:t.id,
-        tipo:'texto',
-        contenido:msg.trim(),
-        created_at:new Date().toISOString(),
-      });
-    }
-    setMsg('');
-    setSending(false);
-    refetchMensajes();
-  }
-
-  async function capturarPick(pickId){
-    const elId=typeof pickId==='string'&&pickId.startsWith('sello-')?'pick-card-'+pickId:'pick-card-'+pickId;
-    const el=document.getElementById(elId);
-    if(!el||!window.html2canvas)return;
-    try{
-      const canvas=await window.html2canvas(el,{backgroundColor:'#0B1024',scale:2,useCORS:true,logging:false});
-      const link=document.createElement('a');
-      link.download=`pick-${pickId}.png`;
-      link.href=canvas.toDataURL('image/png');
-      link.click();
-    }catch(e){console.error('Captura error:',e);}
-  }
-
-  const estadoConfig={
-    ganado:{color:C.positive,icon:'🏆',label:'Ganado'},
-    perdido:{color:C.negative,icon:'❌',label:'Perdido'},
-    pendiente:{color:C.gold,icon:'⏳',label:'Pendiente'},
-    nulo:{color:C.ink2,icon:'➖',label:'Nulo'},
-    en_curso:{color:C.accent,icon:'🔴',label:'En curso'},
-  };
-
-  // ── Selector de identidad ─────────────────────────────────────────────────
-
-  // ── Chat principal ────────────────────────────────────────────────────────
-  // Pantalla "Unirme" para apostadores
-  if(esApostador && showJoin==='ask'){
-    const [nombre,setNombre]=useState('');
-    const unirse=()=>{
-      if(!nombre.trim())return;
-      localStorage.setItem('joined_'+t.id, nombre.trim());
-      setShowJoin('joined');
-    };
-    return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-      <NavHeader title={t.display_name||'Canal'}/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:28,gap:16}}>
-        <Avatar name={t.display_name||'?'} size={64} url={t.avatar_url}/>
-        <Display style={{fontSize:20,textAlign:'center'}}>{t.display_name||t.username}</Display>
-        <Kicker style={{textAlign:'center',fontSize:11,textTransform:'none',letterSpacing:0,color:C.ink1}}>Únete al canal para ver los picks de este tipster</Kicker>
-        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:8}}>
-          <Kicker>TU NOMBRE DE USUARIO</Kicker>
-          <input value={nombre} onChange={e=>setNombre(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&unirse()}
-            placeholder="Ej: apostador123"
-            style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,
-              padding:'0 14px',fontSize:13,color:C.ink0,outline:'none',width:'100%'}}/>
-        </div>
-        <BtnPrimary onClick={unirse} style={{opacity:nombre.trim()?1:.4}}>
-          UNIRME AL CANAL
-        </BtnPrimary>
-      </div>
-    </div>;
-  }
-
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title={t.display_name||t.username||'Canal'}
-      right={<div style={{display:'flex',gap:6}}>
-        {puedeGestionar&&<a href={`./ocr-scanner.html?tipster=${encodeURIComponent(t.id)}&tipsterName=${encodeURIComponent(t.display_name||t.username||'')}`} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.06)',border:'1px solid rgba(94,234,212,0.3)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5,textDecoration:'none',display:'flex',alignItems:'center'}}>📸 SCANNER</a>}
-        <button onClick={()=>push('info',{tipster:t})} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.4)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5}}>INFO →</button>
-      </div>}/>
-    <div style={{flex:1,overflowY:'auto',padding:'14px 14px 0'}}>
-      {/* Channel info strip */}
-      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
-        <Avatar name={t.display_name||'?'} size={32} url={t.avatar_url}/>
-        <div style={{flex:1}}>
-          <div style={{fontSize:12,fontWeight:600,color:C.ink0}}>{t.display_name||t.username}</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,marginTop:3}}>
-            <RachaBadges picks={rachaChat} size={10}/>
-            <Kicker>{t.total_picks||0} picks · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
+async function cargarPendientes(tid){
+  if(!tid)return;
+  try{
+    const picks=await cargarPicksPendientes(tid);
+    const wrap=document.getElementById('pendientesWrap');
+    if(!picks.length){wrap.style.display='none';return;}
+    wrap.style.display='block';
+    document.getElementById('pendientesList').innerHTML=picks.map(p=>`
+      <div class="pick-card" id="pc-${p.id}">
+        <div class="pick-header">
+          <div>
+            <div class="pick-cuota">@${p.cuota_total||'—'}</div>
+            <div class="pick-meta">${p.casa_apuestas||''} · ${p.stake||'—'}u · ${fmt(p.fecha_procesado)}</div>
+          </div>
+          <div class="pick-badges">
+            <span class="badge ${p.confianza||''}">${p.confianza||'—'}</span>
+            <span class="badge">${p.tipo_apuesta||'—'}</span>
+            <span class="badge">${p.tipo_acceso||'—'}</span>
           </div>
         </div>
-        {t.is_verified&&<div style={{padding:'3px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)'}}>
-          <Kicker c={C.accent}>Verificado</Kicker>
-        </div>}
-
-      </div>
-
-      {/* Picks + Mensajes mezclados */}
-      {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
-      {!loading&&picks.length===0&&mensajes.length===0&&<EmptyState icon="📭" title="Sin actividad" sub="Este tipster aún no tiene picks ni mensajes"/>}
-      {[...picks.map(p=>({...p,_tipo:'pick',_fecha:p.fecha_procesado})),
-        ...mensajes.map(m=>({...m,_tipo:'texto',_fecha:m.created_at}))]
-        .sort((a,b)=>new Date(a._fecha)-new Date(b._fecha))
-        .map(item=>{
-          if(item._tipo==='texto'&&item.tipo==='sello'){
-            let sd={};try{sd=JSON.parse(item.contenido||'{}');}catch(e){}
-            const sc={ganado:'#34D399',perdido:'#F87171',nulo:'#FBBF24'}[sd.resultado]||'rgba(234,242,255,0.4)';
-            const si={ganado:'🏆',perdido:'❌',nulo:'➖'}[sd.resultado]||'➖';
-            const sl={ganado:'beneficio',perdido:'pérdida',nulo:'devuelto'}[sd.resultado]||'resultado';
-            const isLiveS=sd.tipo_apuesta==='live';
-            const isPremiumS=sd.tipo_acceso==='premium';
-            return <div key={item.id} style={{marginBottom:16,animation:'fadeIn .25s ease'}}>
-              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
-                <span style={{fontSize:14}}>{si}</span>
-                <span style={{fontSize:12,fontWeight:600,color:sc,textTransform:'uppercase',letterSpacing:.5}}>Pick Resuelto</span>
-                <button onClick={()=>capturarPick('sello-'+item.id)} style={{marginLeft:'auto',padding:'2px 8px',borderRadius:4,background:'rgba(120,170,255,0.08)',border:'1px solid rgba(120,170,255,0.2)',cursor:'pointer',display:'flex',alignItems:'center',gap:3}}>
-                  <span style={{fontSize:9}}>📸</span><Kicker c={C.ink2}>Captura</Kicker>
-                </button>
-              </div>
-              <div id={`pick-card-sello-${item.id}`} style={{background:C.bg1,borderRadius:14,overflow:'hidden',border:`1px solid ${sc}44`}}>
-                <div style={{height:4,background:`linear-gradient(90deg,${C.accent},${C.accent2})`}}/>
-                <div style={{padding:14}}>
-                  <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
-                    <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isLiveS?'rgba(248,113,113,0.4)':'rgba(255,255,255,0.2)'}`,background:isLiveS?'rgba(248,113,113,0.08)':'rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:4}}>
-                      <span style={{fontSize:9}}>{isLiveS?'🔴':'⏱'}</span><Kicker c={isLiveS?C.negative:C.ink0}>{isLiveS?'Live':'Pre-Partido'}</Kicker>
-                    </div>
-                    {sd.casa_apuestas&&<div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.08)',display:'flex',alignItems:'center',gap:4}}>
-                      <span style={{fontSize:9}}>🏦</span><Kicker c={C.accent}>{sd.casa_apuestas}</Kicker>
-                    </div>}
-                    <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isPremiumS?'rgba(168,85,247,0.4)':'rgba(52,211,153,0.4)'}`,background:isPremiumS?'rgba(168,85,247,0.08)':'rgba(52,211,153,0.08)',display:'flex',alignItems:'center',gap:4}}>
-                      <span style={{fontSize:9}}>{isPremiumS?'🔒':'🔓'}</span><Kicker c={isPremiumS?C.accent2:C.positive}>{isPremiumS?'Premium':'Free'}</Kicker>
-                    </div>
-                    <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${sc}66`,background:`${sc}11`,display:'flex',alignItems:'center',gap:4}}>
-                      <span style={{fontSize:9}}>{si}</span><Kicker c={sc}>{(sd.resultado||'').toUpperCase()}</Kicker>
-                    </div>
-                  </div>
-                  {sd.imagen_url&&<img src={sd.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:12,display:'block'}}/>}
-                  {/* Box resultado */}
-                  <div style={{padding:'14px 16px',borderRadius:12,border:`1px solid ${sc}66`,background:`${sc}11`,display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
-                    <div style={{width:44,height:44,borderRadius:'50%',background:`${sc}22`,border:`2px solid ${sc}80`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{si}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:700,color:sc,textTransform:'uppercase',letterSpacing:.5,marginBottom:3}}>{(sd.resultado||'').toUpperCase()}</div>
-                      <Mono style={{fontSize:10,color:C.ink1}}>@{parseFloat(sd.cuota||0).toFixed(2)} · Stake {sd.stake}u</Mono>
-                    </div>
-                    <div style={{textAlign:'right'}}>
-                      <Mono style={{fontSize:20,fontWeight:600,color:sc,display:'block'}}>{sd.profit>=0?'+':''}{parseFloat(sd.profit||0).toFixed(2)}u</Mono>
-                      <Mono style={{fontSize:9,color:`${sc}88`,textTransform:'uppercase',letterSpacing:1}}>{sl}</Mono>
-                    </div>
-                  </div>
-                  {sd.analisis&&<div style={{padding:'8px 10px',borderRadius:6,border:'1px solid rgba(52,211,153,0.35)',background:'rgba(52,211,153,0.06)'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:5}}><span style={{fontSize:9}}>🔎</span><Kicker c={C.positive}>Análisis</Kicker></div>
-                    <p style={{fontSize:11,color:C.ink0,lineHeight:1.6,margin:0}}>{sd.analisis}</p>
-                  </div>}
-                  <div style={{height:1,background:'rgba(255,255,255,0.08)',margin:'10px 0'}}/>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:6}}>
-                    <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>✅</span><Kicker c={C.ink0} style={{fontSize:8}}>Tipster verificado</Kicker></div>
-                    <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>🕓</span><Kicker c={C.ink0} style={{fontSize:8}}>Timestamp</Kicker></div>
-                    <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>🤖</span><Kicker c={C.ink0} style={{fontSize:8}}>Auditado TSAI</Kicker></div>
-                  </div>
-                </div>
-              </div>
-            </div>;
-          }
-          if(item._tipo==='texto') return <div key={item.id} style={{marginBottom:10,animation:'fadeIn .25s ease'}}>
-            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
-              <Avatar name={t.display_name||'?'} size={22} url={t.avatar_url}/>
-              <Kicker c={C.ink3}>{new Date(item.created_at).toLocaleDateString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</Kicker>
-            </div>
-            <div style={{background:C.bg2,borderRadius:10,padding:'10px 12px',maxWidth:'85%',marginLeft:28}}>
-              <p style={{fontSize:13,color:C.ink0,lineHeight:1.5,margin:0}}>{item.contenido}</p>
-            </div>
-          </div>;
-          const p=item;
-          const estado=p.estado||'pendiente';
-        const cfg=estadoConfig[estado]||estadoConfig.pendiente;
-        const ec=cfg.color;
-        const isLive=p.tipo_apuesta==='live';
-        const isPremium=p.tipo_acceso==='premium';
-        const profit=p.profit!=null?parseFloat(p.profit):null;
-        const beneficio=profit!=null?profit:(p.stake&&p.cuota_total?Math.round((parseFloat(p.stake)*parseFloat(p.cuota_total)-parseFloat(p.stake))*100)/100:null);
-        const isPendiente=estado==='pendiente'||estado==='en_curso';
-
-        return <div key={p.id} style={{marginBottom:16,animation:'fadeIn .25s ease'}}>
-          {/* Header row con badge desplegable */}
-          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
-            <span style={{fontSize:14}}>{estado==='pendiente'||estado==='en_curso'?'🎯':cfg.icon}</span>
-            <span style={{fontSize:12,fontWeight:600,color:estado==='pendiente'||estado==='en_curso'?C.ink0:ec,textTransform:'uppercase',letterSpacing:.5}}>{estado==='pendiente'||estado==='en_curso'?'Nuevo Pick':'Pick Resuelto'}</span>
-            <button onClick={()=>capturarPick(p.id)} style={{marginLeft:'auto',padding:'2px 8px',borderRadius:4,background:'rgba(120,170,255,0.08)',border:'1px solid rgba(120,170,255,0.2)',cursor:'pointer',display:'flex',alignItems:'center',gap:3}}>
-              <span style={{fontSize:9}}>📸</span><Kicker c={C.ink2}>Captura</Kicker>
-            </button>
-            {puedeGestionar&&isPendiente&&<div style={{position:'relative'}}>
-              <button onClick={()=>setLiquidando(liquidando===p.id?null:p.id)} style={{
-                padding:'2px 8px',borderRadius:4,background:C.bg3,
-                border:`1px solid ${C.border}`,cursor:'pointer',display:'flex',alignItems:'center',gap:4,
-              }}>
-                <Kicker c={C.ink1}>Liquidar</Kicker>
-                <span style={{fontSize:8,color:C.ink2}}>{liquidando===p.id?'▲':'▼'}</span>
-              </button>
-              {liquidando===p.id&&<div style={{
-                position:'absolute',right:0,top:'calc(100% + 4px)',
-                background:C.bg2,border:`1px solid ${C.border}`,borderRadius:8,
-                overflow:'hidden',zIndex:10,minWidth:120,
-              }}>
-                {[
-                  {r:'ganado',icon:'🏆',label:'Ganado',c:C.positive},
-                  {r:'perdido',icon:'❌',label:'Perdido',c:C.negative},
-                  {r:'nulo',icon:'➖',label:'Nulo',c:C.ink2},
-                ].map(o=><button key={o.r} onClick={()=>liquidar(p.id,o.r)} style={{
-                  display:'flex',alignItems:'center',gap:8,width:'100%',
-                  padding:'9px 12px',background:'none',border:'none',
-                  borderBottom:`1px solid ${C.border}`,cursor:'pointer',
-                }}>
-                  <span style={{fontSize:12}}>{o.icon}</span>
-                  <Kicker c={o.c}>{o.label}</Kicker>
-                </button>)}
-              </div>}
-            </div>}
-          </div>
-
-          {/* Card */}
-          <div id={`pick-card-${p.id}`} style={{background:C.bg1,borderRadius:14,overflow:'hidden',border:`1px solid ${estado==='ganado'?'rgba(52,211,153,0.3)':estado==='perdido'?'rgba(248,113,113,0.25)':C.border}`}}>
-            <div style={{height:4,background:`linear-gradient(90deg,${C.accent},${C.accent2})`}}/>
-            <div style={{padding:14}}>
-              {/* Meta badges */}
-              <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
-                <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isLive?'rgba(248,113,113,0.4)':'rgba(255,255,255,0.2)'}`,background:isLive?'rgba(248,113,113,0.08)':'rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>{isLive?'🔴':'⏱'}</span>
-                  <Kicker c={isLive?C.negative:C.ink0}>{isLive?'Live':'Pre-Partido'}</Kicker>
-                </div>
-                {p.casa_apuestas&&<div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.08)',display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>🏦</span>
-                  <Kicker c={C.accent}>{p.casa_apuestas}</Kicker>
-                </div>}
-                <div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.05)',display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>🕒</span>
-                  <Kicker c={C.ink0}>{p.fecha_procesado?new Date(p.fecha_procesado).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</Kicker>
-                </div>
-                <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isPremium?'rgba(168,85,247,0.4)':'rgba(52,211,153,0.4)'}`,background:isPremium?'rgba(168,85,247,0.08)':'rgba(52,211,153,0.08)',display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>{isPremium?'🔒':'🔓'}</span>
-                  <Kicker c={isPremium?C.accent2:C.positive}>{isPremium?'Premium':'Free'}</Kicker>
-                </div>
-                <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${ec}66`,background:`${ec}11`,display:'flex',alignItems:'center',gap:4}}>
-                  <span style={{fontSize:9}}>{cfg.icon}</span>
-                  <Kicker c={ec}>{cfg.label}</Kicker>
-                </div>
-              </div>
-
-              {/* Imagen boleto */}
-              {p.imagen_url&&<img src={p.imagen_url} style={{width:'100%',borderRadius:8,marginBottom:12,display:'block'}}/>}
-
-              {/* Stats grid — siempre cuota/stake, beneficio solo si resuelto */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:1,background:'rgba(255,255,255,0.08)',borderRadius:8,overflow:'hidden',marginBottom:12}}>
-                {[
-                  {label:'Cuota',val:`@${p.cuota_total?parseFloat(p.cuota_total).toFixed(2):'—'}`,color:C.accent},
-                  {label:'Stake',val:p.stake?`${p.stake}u`:'—',color:C.ink0},
-                  {label:'Beneficio',val:beneficio!=null?`${beneficio>=0?'+':''}${beneficio.toFixed(2)}u`:'—',color:beneficio!=null&&beneficio>=0?C.positive:beneficio!=null?C.negative:C.ink2},
-                ].map(s=><div key={s.label} style={{background:C.bg2,padding:'10px 8px',textAlign:'center'}}>
-                  <Kicker style={{display:'block',marginBottom:4}}>{s.label}</Kicker>
-                  <Mono style={{fontSize:16,fontWeight:600,color:s.color}}>{s.val}</Mono>
-                </div>)}
-              </div>
-
-              {/* Divider */}
-              <div style={{height:1,background:'rgba(255,255,255,0.08)',margin:'10px 0'}}/>
-
-              {/* Trust badges */}
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:6}}>
-                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>✅</span><Kicker c={C.ink0} style={{fontSize:8}}>Tipster verificado</Kicker></div>
-                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>🕓</span><Kicker c={C.ink0} style={{fontSize:8}}>Timestamp</Kicker></div>
-                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9}}>🤖</span><Kicker c={C.ink0} style={{fontSize:8}}>Auditado TSAI</Kicker></div>
-              </div>
-
-              {/* Análisis */}
-              {p.analisis&&<div style={{marginTop:10,padding:'8px 10px',borderRadius:6,border:'1px solid rgba(52,211,153,0.35)',background:'rgba(52,211,153,0.06)'}}>
-                <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:5}}>
-                  <span style={{fontSize:9}}>🔎</span>
-                  <Kicker c={C.positive}>Análisis</Kicker>
-                </div>
-                <p style={{fontSize:11,color:C.ink0,lineHeight:1.6,margin:0}}>{p.analisis}</p>
-              </div>}
-            </div>
-          </div>
-        </div>;
-      })}
-      <div ref={chatEndRef}/>
-    </div>
-
-    {/* Input chat */}
-   {esApostador&&<div style={{margin:'0 14px 8px',padding:12,background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`,textAlign:'center',cursor:'pointer'}}>
-      <Kicker c={C.accent}>+ UNIRME AL CANAL</Kicker>
-    </div>}
-    <div style={{padding:'10px 14px 20px',borderTop:`1px solid ${C.border}`,background:C.bg0,display:'flex',gap:8,flexShrink:0}}>
-      {puedeGestionar
-        ?<>
-          <input value={msg} onChange={e=>setMsg(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&enviarMensaje()}
-            placeholder="Escribe un mensaje…"
-            style={{flex:1,height:36,background:C.bg2,borderRadius:999,border:`1px solid ${C.border}`,
-              padding:'0 14px',fontSize:12,color:C.ink0,outline:'none'}}/>
-          <button onClick={enviarMensaje} disabled={sending||!msg.trim()} style={{
-            width:36,height:36,borderRadius:18,background:C.accent,border:'none',
-            display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
-            opacity:sending||!msg.trim()?0.4:1,
-          }}>
-            <span style={{color:C.accentInk,fontSize:14}}>↑</span>
-          </button>
-        </>
-        :<div style={{flex:1,height:36,background:C.bg2,borderRadius:999,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 14px'}}>
-          <span style={{fontSize:12,color:C.ink2}}>Solo lectura — identifícate para escribir</span>
+        ${p.analisis?`<div style="font-size:12px;color:var(--i1);line-height:1.5">${p.analisis}</div>`:''}
+        <div class="pick-actions">
+          <button class="btn-win"  onclick="liquidar(${p.id},'ganado')">✓ GANADO</button>
+          <button class="btn-loss" onclick="liquidar(${p.id},'perdido')">✗ PERDIDO</button>
+          <button class="btn-void" onclick="liquidar(${p.id},'nulo')">— NULO</button>
         </div>
-      }
-    </div>
-  </div>;
+      </div>`).join('');
+  }catch(e){console.warn(e);}
 }
 
-// ── INFO ──────────────────────────────────────────────────────────────────────
-function InfoScreen({params,onTab}){
-  const {push}=useNav();
-  const t=params?.tipster??{display_name:'Tipster'};
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{flexShrink:0}}>
-      <NavHeader title={t.display_name||t.username||'Tipster'}/>
-      <div style={{background:C.bg1,padding:'16px 16px 18px',textAlign:'center',borderBottom:`1px solid ${C.border}`}}>
-        <Avatar name={t.display_name||'?'} size={80} url={t.avatar_url}/>
-        
-        <Display style={{fontSize:26,display:'block'}}>{(t.display_name||t.username||'TIPSTER').toUpperCase()}</Display>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginTop:8}}>
-          {t.is_verified&&<Kicker c={C.accent} style={{textTransform:'none',letterSpacing:0,fontSize:11}}>✓ Verificado TSAI</Kicker>}
-          {t.has_premium&&<><span style={{color:C.ink3}}>·</span><Kicker c={C.gold} style={{textTransform:'none',letterSpacing:0,fontSize:11}}>🔒 Premium</Kicker></>}
-        </div>
-      </div>
-      <div style={{display:'flex',borderBottom:`1px solid ${C.border}`}}>
-        {['Info','Tips','Stats'].map((tb,i)=><button key={tb} onClick={()=>{if(i===2)push('stats',{tipster:t});}} style={{flex:1,padding:'12px 0',background:'none',border:'none',borderBottom:`2px solid ${i===0?C.accent:'transparent'}`,cursor:'pointer'}}>
-          <Kicker c={i===0?C.accent:C.ink2} style={{fontWeight:i===0?700:500}}>{tb}</Kicker>
-        </button>)}
-      </div>
-    </div>
-    <div style={{flex:1,overflowY:'auto',padding:16}}>
-      {t.bio&&<div style={{borderLeft:`2px solid ${C.accent}`,paddingLeft:12,marginBottom:16}}>
-        <p style={{fontSize:13,color:C.ink1,lineHeight:1.6}}>{t.bio}</p>
-      </div>}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:C.border,borderRadius:10,overflow:'hidden',border:`1px solid ${C.border}`,marginBottom:16}}>
-        {[
-          {l:'Picks totales',v:t.total_picks||0},
-          {l:'Win rate',v:t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}%`:'—'},
-          {l:'Yield',v:t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(2)}%`:'—',hi:true},
-          {l:'Profit',v:t.profit_units?`${parseFloat(t.profit_units)>0?'+':''}${parseFloat(t.profit_units).toFixed(1)}u`:'—'},
-          {l:'Victorias',v:t.wins||0},
-          {l:'Derrotas',v:t.losses||0},
-        ].map(f=><div key={f.l} style={{background:C.bg2,padding:12}}>
-          <Kicker>{f.l}</Kicker>
-          <div style={{fontSize:15,fontWeight:600,color:f.hi?C.accent:C.ink0,marginTop:3,fontFamily:"'JetBrains Mono',monospace"}}>{f.v}</div>
-        </div>)}
-      </div>
-      {(t.sport_focus||[]).length>0&&<>
-        <Kicker style={{display:'block',marginBottom:8}}>Deportes</Kicker>
-        <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:16}}>
-          {(t.sport_focus||[]).map(s=><div key={s} style={{padding:'5px 10px',borderRadius:6,background:C.bg3,border:`1px solid ${C.border}`}}>
-            <Mono style={{fontSize:11,color:C.ink1}}>{s}</Mono>
-          </div>)}
-        </div>
-      </>}
-      {t.has_premium&&<Card style={{padding:14,borderColor:'rgba(94,234,212,0.35)'}}>
-        <Kicker c={C.accent} style={{display:'block',marginBottom:6}}>CANAL PREMIUM</Kicker>
-        <Display style={{fontSize:18,display:'block',marginBottom:4}}>{(t.display_name||'TIPSTER').toUpperCase()} · ÉLITE</Display>
-        <p style={{fontSize:11,color:C.ink2,marginBottom:12}}>Acceso a picks premium · stake máximo</p>
-        <div style={{display:'flex',gap:8}}>
-          <BtnPrimary style={{height:36,fontSize:11}}>
-            Suscribirse{t.price_monthly?` · €${t.price_monthly}/mes`:''}
-          </BtnPrimary>
-          <BtnGhost onClick={()=>push('stats',{tipster:t})} style={{height:36,fontSize:11,width:'auto',padding:'0 14px',flexShrink:0}}>Stats →</BtnGhost>
-        </div>
-      </Card>}
-      {!t.has_premium&&<BtnGhost onClick={()=>push('stats',{tipster:t})} style={{marginTop:8}}>Ver estadísticas →</BtnGhost>}
-    </div>
-  </div>;
+async function liquidar(id,resultado){
+  try{
+    const profit=await liquidarPick(id,resultado);
+    document.getElementById(`pc-${id}`)?.remove();
+    const s=profit>=0?'+':'';
+    toast(`${resultado.toUpperCase()} · ${s}${profit}u`,resultado==='ganado'?'ok':'err');
+    if(!document.getElementById('pendientesList').children.length)
+      document.getElementById('pendientesWrap').style.display='none';
+  }catch(e){toast('✗ '+e.message,'err');}
 }
 
-// ── STATS ─────────────────────────────────────────────────────────────────────
-function StatsScreen({params}){
-  const t=params?.tipster??{display_name:'Tipster'};
-  const dailyStats=useDailyStats(t.id);
-  const rachaStats=useRacha(t.id);
-  const totalProfit=dailyStats.reduce((a,d)=>a+parseFloat(d.profit_units||0),0);
-
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title="ESTADÍSTICAS"/>
-    <div style={{flex:1,overflowY:'auto',padding:16}}>
-      <Kicker style={{display:'block',marginBottom:4}}>YIELD · {t.display_name||'TIPSTER'}</Kicker>
-      <div style={{display:'flex',alignItems:'baseline',gap:6,margin:'4px 0 2px'}}>
-        <Mono style={{fontSize:52,fontWeight:500,color:parseFloat(t.yield_pct)>=0?C.accent:C.negative,letterSpacing:-1,lineHeight:'56px'}}>
-          {t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(2)}`:'—'}
-        </Mono>
-        {t.yield_pct&&<Mono style={{fontSize:22,color:C.ink1}}>%</Mono>}
-      </div>
-      <p style={{fontSize:11,color:C.ink2,marginBottom:12}}>{t.total_picks||0} picks registrados</p>
-      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(234,242,255,.35)',letterSpacing:'1.5px',textTransform:'uppercase',marginBottom:6,display:'flex',alignItems:'center',gap:8}}>
-        <span>EVOLUCIÓN MENSUAL</span>
-        <div style={{display:'flex',alignItems:'center',gap:10,marginLeft:'auto'}}>
-          <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:16,height:2,background:'#5EEAD4',display:'inline-block',borderRadius:2}}></span><span style={{color:'rgba(234,242,255,.5)',fontSize:8}}>Profit</span></span>
-          <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:16,height:0,display:'inline-block',borderTop:'2px dashed #A855F7'}}></span><span style={{color:'rgba(234,242,255,.5)',fontSize:8}}>Yield</span></span>
-        </div>
-      </div>
-      <div style={{height:180,marginBottom:16,position:'relative',background:C.bg2,borderRadius:8,border:`1px solid ${C.border}`,padding:8}}>
-        {dailyStats.length>0
-          ?<canvas id={`chart_${t.id}`} style={{display:'block',width:'100%',height:'100%'}}/>
-          :<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}><Kicker c={C.ink3}>Sin datos de historial</Kicker></div>}
-      </div>
-      {dailyStats.length>0&&<ChartRenderer stats={dailyStats} tipsterId={t.id}/>}
-
-      {rachaStats.length>0&&<div style={{marginBottom:16}}>
-        <Kicker style={{display:'block',marginBottom:8}}>RACHA RECIENTE</Kicker>
-        <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
-          <RachaBadges picks={rachaStats} size={20}/>
-          <Kicker style={{marginLeft:4}}>← más reciente</Kicker>
-        </div>
-      </div>}
-
-      {/* Stats grid */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:C.border,borderRadius:12,overflow:'hidden',border:`1px solid ${C.border}`,marginBottom:16}}>
-        {[
-          {l:'Picks totales',v:t.total_picks||0},
-          {l:'Win rate',v:t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}%`:'—',hi:true},
-          {l:'Yield',v:t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(2)}%`:'—',hi:true},
-          {l:'Profit total',v:t.profit_units?`${parseFloat(t.profit_units)>0?'+':''}${parseFloat(t.profit_units).toFixed(1)}u`:'—'},
-          {l:'Victorias',v:t.wins||0},
-          {l:'Derrotas',v:t.losses||0},
-        ].map(s=><div key={s.l} style={{background:C.bg2,padding:12}}>
-          <Kicker>{s.l}</Kicker>
-          <Mono style={{fontSize:18,fontWeight:600,color:s.hi?C.accent:C.ink0,display:'block',marginTop:4}}>{s.v}</Mono>
-        </div>)}
-      </div>
-      {/* Daily history */}
-      {dailyStats.length>0&&<>
-        <Display style={{fontSize:14,display:'block',marginBottom:10}}>Historial diario</Display>
-        <div style={{display:'flex',flexDirection:'column',gap:6}}>
-          {[...dailyStats].reverse().slice(0,10).map(d=>{
-            const pos=parseFloat(d.profit_units||0)>=0;
-            return <Card key={d.fecha} style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px'}}>
-              <Display style={{fontSize:11,width:70,textTransform:'none',fontWeight:600}}>{new Date(d.fecha).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</Display>
-              <Kicker style={{flex:1,fontSize:9}}>{d.total_picks} picks</Kicker>
-              <Mono style={{fontSize:12,fontWeight:600,color:pos?C.accent:C.negative}}>{pos?'+':''}{parseFloat(d.profit_units||0).toFixed(1)}u</Mono>
-              <Mono style={{fontSize:11,color:C.ink2,minWidth:50,textAlign:'right'}}>{parseFloat(d.yield_pct||0).toFixed(1)}%</Mono>
-            </Card>;
-          })}
-        </div>
-      </>}
-    </div>
-  </div>;
+function resetForm(){
+  clearImagen();
+  ['fCuota','fStake','fAnalisis'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fConfianza').value='ALTA';
+  document.getElementById('fTipo').value='pre-partido';
+  document.getElementById('fCategoria').value='gratis';
 }
 
-function ChartRenderer({stats,tipsterId}){
-  useEffect(()=>{
-    setTimeout(()=>{
-      const canvas=document.getElementById('chart_'+tipsterId);
-      if(!canvas||!stats.length||!window.Chart)return;
-      if(canvas._ci){canvas._ci.destroy();canvas._ci=null;}
-      const labels=stats.map(d=>{const dt=new Date(d.fecha);return(dt.getDate()+'').padStart(2,'0')+'/'+(dt.getMonth()+1+'').padStart(2,'0');});
-      let acc=0;const profit=stats.map(d=>{acc+=parseFloat(d.profit_units||0);return Math.round(acc*100)/100;});
-      let accY=0;const yieldD=stats.map(d=>{accY+=parseFloat(d.yield_pct||0);return Math.round(accY*100)/100;});
-      canvas._ci=new window.Chart(canvas.getContext('2d'),{
-        type:'line',
-        data:{labels,datasets:[
-          {label:'Profit acum.',data:profit,borderColor:'#5EEAD4',backgroundColor:'rgba(94,234,212,0.08)',borderWidth:2,pointRadius:profit.length===1?4:2,pointBackgroundColor:'#5EEAD4',fill:true,tension:0.3,spanGaps:true},
-          {label:'Yield acum.',data:yieldD,borderColor:'#A855F7',backgroundColor:'transparent',borderWidth:2,borderDash:[4,3],pointRadius:yieldD.length===1?4:2,pointBackgroundColor:'#A855F7',fill:false,tension:0.3,spanGaps:true},
-        ]},
-        options:{
-          responsive:true,maintainAspectRatio:false,animation:false,
-          plugins:{legend:{display:false}},
-          scales:{
-            x:{ticks:{color:'rgba(200,200,200,0.6)',font:{size:8,family:'monospace'},maxRotation:45,minRotation:45,autoSkip:true,maxTicksLimit:8},grid:{color:'rgba(120,120,120,0.08)'},border:{color:'rgba(120,120,120,0.15)'}},
-            y:{ticks:{display:false},grid:{color:function(ctx){return ctx.tick.value===0?'rgba(200,200,200,0.35)':'rgba(120,120,120,0.05)';},lineWidth:function(ctx){return ctx.tick.value===0?1.5:1;}},border:{display:false}},
-          },
-        },
-      });
-    },100);
-  },[stats,tipsterId]);
-  return null;
+function showProg(v,label,pct){
+  document.getElementById('ocrProgress').classList.toggle('visible',v);
+  if(label)document.getElementById('ocrLabel').textContent=label;
+  if(pct!==undefined)document.getElementById('ocrBar').style.width=pct+'%';
 }
 
-// ── RANKING ───────────────────────────────────────────────────────────────────
-function RankingScreen({onTab}){
-  const {push}=useNav();
-  const {data:tipsters,loading}=useTipsters();
-  const [period,setPeriod]=useState('30d');
-
-  const sorted=[...tipsters].sort((a,b)=>parseFloat(b.yield_pct||0)-parseFloat(a.yield_pct||0));
-  const podium=sorted.length>=3?[sorted[1],sorted[0],sorted[2]]:sorted;
-  const rest=sorted.slice(3);
-
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',flexShrink:0}}>
-      <Kicker c={C.accent} style={{display:'block',marginBottom:3}}>TSAI LEADERBOARD</Kicker>
-      <Display style={{fontSize:24,display:'block'}}>RANKING</Display>
-    </div>
-    <div style={{padding:'0 16px 12px',flexShrink:0}}>
-      <div style={{display:'flex',padding:3,background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
-        {['7d','30d','90d','Anual'].map(p=><button key={p} onClick={()=>setPeriod(p)} style={{flex:1,padding:'8px 0',background:period===p?C.accent:'transparent',borderRadius:7,border:'none',cursor:'pointer'}}>
-          <Kicker c={period===p?C.accentInk:C.ink2} style={{fontWeight:period===p?700:500}}>{p}</Kicker>
-        </button>)}
-      </div>
-    </div>
-    <div style={{flex:1,overflowY:'auto',padding:'0 16px 24px'}}>
-      {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
-      {!loading&&sorted.length===0&&<EmptyState icon="🏆" title="Sin datos de ranking" sub="No hay tipsters registrados"/>}
-      {!loading&&sorted.length>=3&&<>
-        {/* Podium */}
-        <div style={{display:'flex',alignItems:'flex-end',gap:8,marginBottom:22,marginTop:20}}>
-          {podium.map((t,i)=>{
-            const isFirst=i===1;
-            const ac=isFirst?C.gold:i===0?C.accent:C.accent2;
-            const rank=isFirst?1:i===0?2:3;
-            return <div key={t.id} onClick={()=>push('info',{tipster:t})} style={{flex:isFirst?1.12:1,marginTop:isFirst?0:16,textAlign:'center',cursor:'pointer'}}>
-              <div style={{width:isFirst?28:24,height:isFirst?28:24,borderRadius:999,background:C.bg0,border:`1.5px solid ${ac}`,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 4px'}}>
-                <Mono style={{fontSize:isFirst?13:11,fontWeight:700,color:ac}}>{rank}</Mono>
-              </div>
-              <div style={{padding:'12px 6px',border:`1px solid ${ac}55`,borderRadius:12,background:isFirst?'rgba(251,191,36,0.05)':C.bg1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-                {isFirst&&<span style={{fontSize:14}}>👑</span>}
-                <Avatar name={t.display_name||'?'} size={isFirst?48:36} url={t.avatar_url}/>
-                <span style={{fontSize:isFirst?12:10,fontWeight:600,color:C.ink0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'90%'}}>{t.display_name||t.username}</span>
-                <Kicker style={{fontSize:8}}>{(t.sport_focus||['—'])[0]}</Kicker>
-                <Mono style={{fontSize:isFirst?15:12,fontWeight:700,color:ac}}>
-                  {t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(1)}%`:'—'}
-                </Mono>
-              </div>
-            </div>;
-          })}
-        </div>
-        {/* List */}
-        {rest.length>0&&<>
-          <Kicker style={{display:'block',marginBottom:8}}>4 — {sorted.length} · CLASIFICACIÓN</Kicker>
-          <div style={{display:'flex',flexDirection:'column',gap:6}}>
-            {rest.map((t,i)=><Card key={t.id} onClick={()=>push('info',{tipster:t})} style={{display:'flex',alignItems:'center',gap:8,padding:10,cursor:'pointer'}}>
-              <Mono style={{fontSize:11,color:C.ink2,fontWeight:600,width:18,textAlign:'center'}}>{i+4}</Mono>
-              <Avatar name={t.display_name||'?'} size={30} url={t.avatar_url}/>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:12,fontWeight:600,color:C.ink0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.display_name||t.username}</div>
-                <Kicker style={{fontSize:8}}>{(t.sport_focus||[]).join(' · ')||'Multi'} · {t.total_picks||0} picks</Kicker>
-              </div>
-              <Mono style={{fontSize:12,fontWeight:600,color:parseFloat(t.yield_pct)>=0?C.accent:C.negative}}>
-                {t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(1)}%`:'—'}
-              </Mono>
-            </Card>)}
-          </div>
-        </>}
-      </>}
-    </div>
-    <TabBar active="ranking" onTab={onTab}/>
-  </div>;
+function fmt(ts){
+  if(!ts)return'—';
+  return new Date(ts).toLocaleDateString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 
-// ── MARKETPLACE ───────────────────────────────────────────────────────────────
-function MarketplaceScreen({onTab}){
-  const {push}=useNav();
-  const {data:tipsters,loading}=useTipsters();
-  const premium=tipsters.filter(t=>t.has_premium);
-  const featured=premium[0];
-  const colors=[C.accent2,C.accent3,C.accent4,C.accent];
-
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',flexShrink:0}}>
-      <Kicker c={C.accent2} style={{display:'block',marginBottom:3}}>TSAI · MARKETPLACE</Kicker>
-      <Display style={{fontSize:24,display:'block'}}>ÉLITE</Display>
-    </div>
-    <div style={{flex:1,overflowY:'auto',padding:'0 16px 24px'}}>
-      {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
-      {!loading&&premium.length===0&&<EmptyState icon="🏪" title="Sin canales premium" sub="No hay tipsters premium registrados aún"/>}
-      {!loading&&featured&&<>
-        {/* Featured */}
-        <Card style={{padding:16,marginBottom:18,borderColor:'rgba(94,234,212,0.35)',background:'#0F2238'}}>
-          <div style={{display:'flex',gap:6,marginBottom:12}}>
-            <div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(251,191,36,0.4)',background:'rgba(251,191,36,0.06)'}}><Kicker c={C.gold}>★ Destacado</Kicker></div>
-            <div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(94,234,212,0.4)'}}><Kicker c={C.accent}>PREMIUM</Kicker></div>
-          </div>
-          <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:12}}>
-            <Avatar name={featured.display_name||'?'} size={46} url={featured.avatar_url}/>
-            <div style={{flex:1}}>
-              <Display style={{fontSize:17,display:'block',lineHeight:1.1}}>{(featured.display_name||'TIPSTER').toUpperCase()}</Display>
-              <Kicker>{featured.total_picks||0} picks · {featured.win_rate_pct?`${parseFloat(featured.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
-            </div>
-          </div>
-          {featured.bio&&<p style={{fontSize:11,color:C.ink1,marginBottom:12,lineHeight:1.6}}>{featured.bio.slice(0,120)}{featured.bio.length>120?'…':''}</p>}
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:10,borderTop:`1px solid ${C.border}`}}>
-            <div>
-              <Kicker>YIELD</Kicker>
-              <Mono style={{fontSize:18,fontWeight:700,color:C.accent,display:'block'}}>
-                {featured.yield_pct?`${parseFloat(featured.yield_pct)>0?'+':''}${parseFloat(featured.yield_pct).toFixed(1)}%`:'—'}
-              </Mono>
-            </div>
-            <div style={{textAlign:'right'}}>
-              <Kicker>DESDE</Kicker>
-              <Mono style={{fontSize:18,fontWeight:700,display:'block'}}>
-                {featured.price_monthly?`€${featured.price_monthly}/mes`:'Gratis'}
-              </Mono>
-            </div>
-            <BtnPrimary onClick={()=>push('info',{tipster:featured})} style={{height:36,width:'auto',padding:'0 14px',fontSize:11}}>Ver canal</BtnPrimary>
-          </div>
-        </Card>
-        {/* Grid */}
-        <Display style={{fontSize:14,display:'block',marginBottom:10}}>CANALES <span style={{color:C.accent}}>PREMIUM</span></Display>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-          {premium.map((t,i)=>{
-            const col=colors[i%colors.length];
-            return <Card key={t.id} onClick={()=>push('info',{tipster:t})} style={{padding:11,borderColor:`${col}55`,background:`${col}11`,cursor:'pointer'}}>
-              <Avatar name={t.display_name||'?'} size={32} url={t.avatar_url}/>
-              <div style={{fontSize:12,fontWeight:600,color:C.ink0,marginTop:8,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.display_name||t.username}</div>
-              <Kicker style={{fontSize:9,display:'block',marginTop:1}}>{(t.sport_focus||['—'])[0]}</Kicker>
-              <div style={{display:'flex',justifyContent:'space-between',marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`}}>
-                <Mono style={{fontSize:12,fontWeight:700,color:col}}>
-                  {t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(1)}%`:'—'}
-                </Mono>
-                <Mono style={{fontSize:12,fontWeight:600}}>
-                  {t.price_monthly?`€${t.price_monthly}`:'-'}
-                </Mono>
-              </div>
-            </Card>;
-          })}
-        </div>
-      </>}
-    </div>
-    <TabBar active="market" onTab={onTab}/>
-  </div>;
+let tt;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type}`;
+  clearTimeout(tt);
+  tt=setTimeout(()=>el.classList.add('hidden'),3000);
 }
 
-// ── SETTINGS ──────────────────────────────────────────────────────────────────
-function SettingsScreen({onTab}){
-  const {session,setSession}=useAuth();
-  const logout=async()=>{await sb.auth.signOut();setSession(null);};
-  const groups=[
-    {l:'Cuenta',rows:[{i:'👤',t:'Perfil',d:session?.user?.email||'—'},{i:'🔒',t:'Privacidad'},{i:'💰',t:'Canales privados'}]},
-    {l:'Tips',rows:[{i:'🔔',t:'Notificaciones',badge:true},{i:'#',t:'Formato cuotas',d:'Decimal'},{i:'⭐',t:'Favoritos'}]},
-    {l:'Soporte',rows:[{i:'🎧',t:'Soporte'},{i:'📋',t:'Glosario'},{i:'ℹ',t:'FAQ'}]},
-  ];
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',textAlign:'center',flexShrink:0}}>
-      <Display style={{fontSize:18}}>AJUSTES</Display>
-    </div>
-    <div style={{flex:1,overflowY:'auto'}}>
-      <div style={{padding:'0 16px 6px'}}>
-        <Card style={{display:'flex',alignItems:'center',gap:10,padding:14}}>
-          <Avatar name={session?.user?.email||'U'} size={44}/>
-          <div style={{flex:1}}>
-            <div style={{fontSize:14,fontWeight:600,color:C.ink0}}>Mi cuenta</div>
-            <Mono style={{fontSize:10,color:C.ink2}}>{session?.user?.email||'No autenticado'}</Mono>
-          </div>
-        </Card>
-      </div>
-      <div style={{padding:'10px 16px 6px'}}>
-        <Card style={{padding:14,borderColor:'rgba(94,234,212,0.35)'}}>
-          <Kicker c={C.accent} style={{display:'block',marginBottom:6}}>◆ TSAI ÉLITE</Kicker>
-          <Display style={{fontSize:18,display:'block',marginBottom:6}}>Picks <span style={{color:C.accent}}>ilimitados</span>, auditoría <span style={{color:C.accent}}>AI</span>.</Display>
-          <BtnPrimary style={{height:34,fontSize:11}}>Probar 7 días — €0</BtnPrimary>
-        </Card>
-      </div>
-      {groups.map(g=><div key={g.l} style={{paddingTop:10,paddingBottom:3}}>
-        <div style={{padding:'0 22px 6px'}}><Kicker>{g.l}</Kicker></div>
-        <div style={{padding:'0 16px'}}>
-          <Card>
-            {g.rows.map((r,i)=><div key={r.t} style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderBottom:i<g.rows.length-1?`1px solid ${C.border}`:'none',cursor:'pointer'}}>
-              <div style={{width:26,height:26,borderRadius:7,background:C.bg3,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13}}>{r.i}</div>
-              <span style={{flex:1,fontSize:13,color:C.ink0}}>{r.t}</span>
-              {r.d&&<Mono style={{fontSize:11,color:C.ink2}}>{r.d}</Mono>}
-              {r.badge&&<div style={{width:14,height:14,borderRadius:7,background:C.accent,display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{color:C.accentInk,fontSize:9,fontWeight:700}}>!</span></div>}
-              <span style={{color:C.ink3}}>›</span>
-            </div>)}
-          </Card>
-        </div>
-      </div>)}
-      <div style={{padding:'18px 16px 6px'}}>
-        <Card onClick={logout} style={{padding:14,background:C.bg2,cursor:'pointer',textAlign:'center'}}>
-          <Kicker c={C.negative} style={{textTransform:'uppercase'}}>Cerrar sesión</Kicker>
-        </Card>
-      </div>
-      <div style={{textAlign:'center',padding:'12px 0 80px'}}><Kicker c={C.ink3}>TSAI · TrueStats AI · v2.0</Kicker></div>
-    </div>
-    <TabBar active="cuenta" onTab={onTab}/>
-  </div>;
-}
-
-// ── Router ────────────────────────────────────────────────────────────────────
-function Router(){
-  const {cur,reset}=useNav();
-  const {session,loading}=useAuth();
-  const [tab,setTab]=useState('home');
-
-useEffect(()=>{
-  if(!session)reset('splash');
-  else reset('main');
-},[session]);
-
-  if(loading)return <div style={{height:'100%',background:C.bg0,display:'flex',alignItems:'center',justifyContent:'center'}}><Spinner/></div>;
-
-  const onTab=(id)=>{setTab(id);reset('main');};
-
-  if(!session){
-    if(cur.s==='login')return <LoginScreen/>;
-    return <SplashScreen/>;
-  }
-
-  if(cur.s==='chat')  return <ChatScreen  params={cur.p} onTab={onTab}/>;
-  if(cur.s==='info')  return <InfoScreen  params={cur.p} onTab={onTab}/>;
-  if(cur.s==='stats') return <StatsScreen params={cur.p}/>;
-
-  if(tab==='ranking') return <RankingScreen  onTab={onTab}/>;
-  if(tab==='market')  return <MarketplaceScreen onTab={onTab}/>;
-  if(tab==='cuenta')  return <SettingsScreen onTab={onTab}/>;
-  return <HomeScreen onTab={onTab}/>;
-}
-
-function App(){
-  return <AuthProvider><NavProvider><Router/></NavProvider></AuthProvider>;
-}
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+init();
 </script>
 </body>
 </html>
