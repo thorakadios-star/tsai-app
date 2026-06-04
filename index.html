@@ -615,7 +615,7 @@ function HomeScreen({onTab}){
     (t.sport_focus||[]).some(s=>s.toLowerCase().includes(sport.toLowerCase()))
   );
 
-  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
+  return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column',position:'relative'}}>
     {/* Topbar */}
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 16px 12px',flexShrink:0}}>
       <div style={{display:'flex',alignItems:'center',gap:10}}>
@@ -740,6 +740,8 @@ function ChatScreen({params,onTab}){
   const [sending,setSending]=useState(false);
   const [liquidando,setLiquidando]=useState(null);
   const chatEndRef=useRef(null);
+  const chatTopRef=useRef(null);
+  const scrollRef=useRef(null);
   useEffect(()=>{if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[picks,mensajes]); // pick id abierto
 
   // Cargar usuarios para el selector
@@ -912,7 +914,8 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
     <NavHeader title={t.display_name||t.username||'Canal'}/>
-    <div style={{flex:1,overflowY:'auto',padding:'14px 14px 0'}}>
+    {/* Channel info strip FIJO */}
+    <div style={{padding:'10px 14px 0',flexShrink:0}}>
       {/* Channel info strip */}
       <div style={{marginBottom:14,padding:'12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
         {/* Fila superior */}
@@ -950,7 +953,11 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         }
       </div>
 
+    </div>
+    {/* Scroll area */}
+    <div style={{flex:1,overflowY:'auto',padding:'0 14px',position:'relative'}} ref={scrollRef}>
       {/* Picks + Mensajes mezclados */}
+      <div ref={chatTopRef}/>
       {loading&&<div style={{display:'flex',justifyContent:'center',padding:32}}><Spinner/></div>}
       {!loading&&picks.length===0&&mensajes.length===0&&<EmptyState icon="📭" title="Sin actividad" sub="Este tipster aún no tiene picks ni mensajes"/>}
       {[...picks.map(p=>({...p,_tipo:'pick',_fecha:p.fecha_procesado})),
@@ -1140,6 +1147,8 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
       <div ref={chatEndRef}/>
     </div>
 
+    {/* Botón ir al inicio */}
+    <button onClick={()=>chatTopRef.current?.scrollIntoView({behavior:'smooth'})} style={{position:'absolute',right:16,bottom:80,width:36,height:36,borderRadius:18,background:C.bg2,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:16,color:C.ink1,zIndex:10,boxShadow:'0 2px 8px rgba(0,0,0,.3)'}}>↑</button>
     {/* Input chat */}
    {esApostador&&<div style={{margin:'0 14px 8px',padding:12,background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`,textAlign:'center',cursor:'pointer'}}>
       <Kicker c={C.accent}>+ UNIRME AL CANAL</Kicker>
