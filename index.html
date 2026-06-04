@@ -173,7 +173,7 @@ function useRacha(tipsterId){
   useEffect(()=>{
     if(!tipsterId)return;
     sb.from('boletos').select('estado').eq('tipster_id',tipsterId)
-      .in('estado',['ganado','perdido','nulo']).order('settled_at',{ascending:false}).limit(5)
+      .in('estado',['ganado','perdido','nulo']).order('settled_at',{ascending:false}).limit(10)
       .then(({data})=>setData(data||[]));
   },[tipsterId]);
   return data;
@@ -911,26 +911,43 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
   }
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title={t.display_name||t.username||'Canal'}
-      right={<div style={{display:'flex',gap:6}}>
-        {puedeGestionar&&<a href={`./ocr-scanner.html?tipster=${encodeURIComponent(t.id)}&tipsterName=${encodeURIComponent(t.display_name||t.username||'')}`} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.06)',border:'1px solid rgba(94,234,212,0.3)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5,textDecoration:'none',display:'flex',alignItems:'center'}}>📸 SCANNER</a>}
-        <button onClick={()=>push('info',{tipster:t})} style={{height:34,padding:'0 12px',borderRadius:8,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.4)',color:C.accent,fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:.5}}>INFO →</button>
-      </div>}/>
+    <NavHeader title={t.display_name||t.username||'Canal'}/>
     <div style={{flex:1,overflowY:'auto',padding:'14px 14px 0'}}>
       {/* Channel info strip */}
-      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,padding:'10px 12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
-        <Avatar name={t.display_name||'?'} size={32} url={t.avatar_url}/>
-        <div style={{flex:1}}>
-          <div style={{fontSize:12,fontWeight:600,color:C.ink0}}>{t.display_name||t.username}</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,marginTop:3}}>
-            <RachaBadges picks={rachaChat} size={10}/>
-            <Kicker>{t.total_picks||0} picks · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
+      <div style={{marginBottom:14,padding:'12px',background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
+        {/* Fila superior */}
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+          <Avatar name={t.display_name||'?'} size={36} url={t.avatar_url}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:13,fontWeight:600,color:C.ink0}}>{t.display_name||t.username}</div>
+            <div style={{display:'flex',alignItems:'center',gap:4,marginTop:4,flexWrap:'wrap'}}>
+              <RachaBadges picks={rachaChat} size={13}/>
+            </div>
+            <Kicker style={{display:'block',marginTop:3}}>{t.total_picks||0} picks · {t.win_rate_pct?`${parseFloat(t.win_rate_pct).toFixed(1)}% acc`:'—'}</Kicker>
           </div>
+          {t.is_verified&&<div style={{padding:'2px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)',flexShrink:0}}>
+            <Kicker c={C.accent}>✓ Verificado</Kicker>
+          </div>}
         </div>
-        {t.is_verified&&<div style={{padding:'3px 8px',borderRadius:4,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.3)'}}>
-          <Kicker c={C.accent}>Verificado</Kicker>
-        </div>}
-
+        {/* Divider */}
+        <div style={{height:1,background:C.border,marginBottom:10}}/>
+        {/* Botones condicionales */}
+        {puedeGestionar
+          ?<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            <a href={`./ocr-scanner.html?tipster=${encodeURIComponent(t.id)}&tipsterName=${encodeURIComponent(t.display_name||t.username||'')}`}
+              style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:36,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',textDecoration:'none',background:'rgba(94,234,212,.08)',border:'1px solid rgba(94,234,212,.4)',color:C.accent,boxShadow:'0 0 20px -7px rgba(94,234,212,.5),inset 0 0 18px -11px rgba(94,234,212,.6)'}}>
+              <span style={{fontSize:13}}>📸</span>Scanner
+            </a>
+            <button onClick={()=>push('panel',{tipster:t})}
+              style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:36,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',border:'none',background:'rgba(168,85,247,.08)',borderStyle:'solid',borderWidth:1,borderColor:'rgba(168,85,247,.4)',color:'#A855F7',boxShadow:'0 0 20px -7px rgba(168,85,247,.5),inset 0 0 18px -11px rgba(168,85,247,.6)'}}>
+              <span style={{fontSize:13}}>⚙️</span>Panel
+            </button>
+          </div>
+          :<button onClick={()=>push('stats',{tipster:t})}
+            style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:36,borderRadius:8,width:'100%',fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',border:'1px solid rgba(52,211,153,.4)',background:'rgba(52,211,153,.08)',color:C.positive,boxShadow:'0 0 20px -7px rgba(52,211,153,.5),inset 0 0 18px -11px rgba(52,211,153,.6)'}}>
+            <span style={{fontSize:13}}>📊</span>Tipster Stats
+          </button>
+        }
       </div>
 
       {/* Picks + Mensajes mezclados */}
@@ -1364,7 +1381,7 @@ function PanelScreen({params}){
     </div>
     <div style={{flex:1,overflowY:'auto',padding:16}}>
       {tab==='picks'&&<div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <a href={`./ocr-scanner.html?tipster=${t.id}&tipsterName=${encodeURIComponent(t.display_name||t.username||'')}`} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,height:46,background:'rgba(94,234,212,0.1)',border:'1px solid rgba(94,234,212,0.4)',borderRadius:999,color:C.accent,fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:11,letterSpacing:.5,textDecoration:'none',textTransform:'uppercase'}}>📸 ESCANEAR BOLETO</a>
+
         <Kicker style={{display:'block'}}>{picks.length} picks pendientes</Kicker>
         {picksLoading&&<div style={{display:'flex',justifyContent:'center',padding:24}}><Spinner/></div>}
         {!picksLoading&&picks.length===0&&<EmptyState icon="✅" title="Sin picks pendientes" sub="Todos los picks están resueltos"/>}
@@ -1411,6 +1428,9 @@ function PanelScreen({params}){
         </div>
       </div>}
       {tab==='stats'&&<div style={{display:'flex',flexDirection:'column',gap:12}}>
+        <button onClick={()=>push('stats',{tipster:t})} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:40,borderRadius:8,width:'100%',fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',border:'1px solid rgba(168,85,247,.4)',background:'rgba(168,85,247,.08)',color:'#A855F7'}}>
+          📊 Ver estadísticas completas →
+        </button>
         <div style={{background:C.bg1,borderRadius:12,border:`1px solid ${C.border}`,padding:14,textAlign:'center'}}>
           <Kicker style={{display:'block',marginBottom:4}}>Yield total</Kicker>
           <Mono style={{fontSize:42,fontWeight:500,color:parseFloat(t.yield_pct)>=0?C.accent:C.negative,lineHeight:1}}>{t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(2)}`:'—'}</Mono>
