@@ -1561,7 +1561,7 @@ function MarketplaceScreen({onTab}){
   </div>;
 }
 
-// ── SETTINGS ──────────────────────────────────────────────────────────────────
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
 function SettingsScreen({onTab}){
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
     <div style={{padding:'52px 16px 12px',textAlign:'center',flexShrink:0}}>
@@ -1576,3 +1576,41 @@ function SettingsScreen({onTab}){
     <TabBar active="cuenta" onTab={onTab}/>
   </div>;
 }
+
+function Router(){
+  const {cur,reset}=useNav();
+  const {session,loading}=useAuth();
+  const [tab,setTab]=useState('home');
+
+useEffect(()=>{
+  if(!session)reset('splash');
+  else reset('main');
+},[session]);
+
+  if(loading)return <div style={{height:'100%',background:C.bg0,display:'flex',alignItems:'center',justifyContent:'center'}}><Spinner/></div>;
+
+  const onTab=(id)=>{setTab(id);reset('main');};
+
+  if(!session){
+    if(cur.s==='login')return <LoginScreen/>;
+    return <SplashScreen/>;
+  }
+
+  if(cur.s==='chat')  return <ChatScreen  params={cur.p} onTab={onTab}/>;
+  if(cur.s==='info')  return <InfoScreen  params={cur.p} onTab={onTab}/>;
+  if(cur.s==='stats') return <StatsScreen params={cur.p}/>;
+  if(cur.s==='panel') return <PanelScreen params={cur.p}/>;
+
+  if(tab==='ranking') return <RankingScreen  onTab={onTab}/>;
+  if(tab==='market')  return <MarketplaceScreen onTab={onTab}/>;
+  if(tab==='cuenta')  return <SettingsScreen onTab={onTab}/>;
+  return <HomeScreen onTab={onTab}/>;
+}
+
+function App(){
+  return <AuthProvider><NavProvider><Router/></NavProvider></AuthProvider>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
