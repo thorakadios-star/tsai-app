@@ -266,6 +266,18 @@ function NavHeader({title,right,showBack=true}){
 }
 
 // ── TabBar ────────────────────────────────────────────────────────────────────
+function TopBarLogo(){
+  return <div style={{display:'flex',alignItems:'center',gap:10}}>
+    <img src='https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png' style={{width:32,height:32,objectFit:'contain'}}/>
+    <div style={{borderLeft:`1px solid ${C.borderStrong}`,paddingLeft:10}}>
+      <div style={{display:'flex',alignItems:'center',gap:4}}>
+        <Kicker>TrueStats AI</Kicker>
+      </div>
+      <Mono style={{fontSize:10,color:C.accent,letterSpacing:2}}>v2.0</Mono>
+    </div>
+  </div>;
+}
+
 const TABS=[{id:'home',label:'Canales',icon:'⊟'},{id:'ranking',label:'Ranking',icon:'◈'},{id:'market',label:'Comunidad',icon:'◆'},{id:'cuenta',label:'Cuenta',icon:'○'}];
 function TabBar({active,onTab}){
   return <div style={{flexShrink:0,display:'grid',gridTemplateColumns:'repeat(4,1fr)',padding:'10px 8px 20px',background:C.bg0,borderTop:`1px solid ${C.border}`}}>
@@ -1429,9 +1441,11 @@ function RankingScreen({onTab}){
   const rest=sorted.slice(3);
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',flexShrink:0}}>
-      <Kicker c={C.accent} style={{display:'block',marginBottom:3}}>TSAI LEADERBOARD</Kicker>
-      <Display style={{fontSize:24,display:'block'}}>RANKING</Display>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 16px 12px',flexShrink:0}}>
+      <TopBarLogo/>
+      <div style={{display:'flex',gap:8}}>
+        <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
+      </div>
     </div>
     <div style={{padding:'0 16px 12px',flexShrink:0}}>
       <div style={{display:'flex',padding:3,background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`}}>
@@ -1492,8 +1506,9 @@ function RankingScreen({onTab}){
 // ── MARKETPLACE (COMUNIDAD) ──────────────────────────────────────────────────
 function MarketplaceScreen({onTab}){
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',textAlign:'center',flexShrink:0}}>
-      <Display style={{fontSize:18}}>COMUNIDAD</Display>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 16px 12px',flexShrink:0}}>
+      <TopBarLogo/>
+      <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
     </div>
     <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:20,padding:24}}>
       <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:96,height:96,objectFit:'contain',filter:'drop-shadow(0 0 24px rgba(94,234,212,.35))'}}/>
@@ -1515,8 +1530,9 @@ function SettingsScreen({onTab}){
     {l:'Soporte',rows:[{i:'🎧',t:'Soporte'},{i:'📋',t:'Glosario'},{i:'ℹ',t:'FAQ'}]},
   ];
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <div style={{padding:'52px 16px 12px',textAlign:'center',flexShrink:0}}>
-      <Display style={{fontSize:18}}>AJUSTES</Display>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'52px 16px 12px',flexShrink:0}}>
+      <TopBarLogo/>
+      <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
     </div>
     <div style={{flex:1,overflowY:'auto'}}>
       <div style={{padding:'0 16px 6px'}}>
