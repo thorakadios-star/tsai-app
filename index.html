@@ -593,7 +593,7 @@ const ECO=[
 const SPORTS=['Todos','Fútbol','Baloncesto','Tenis'];
 
 function HomeScreen({onTab}){
-  const {push}=useNav();
+  const {push,reset}=useNav();
   const {data:tipsters,loading,error}=useTipsters();
   const [sport,setSport]=useState('Todos');
   const rachasTipsters=useRachasTipsters(tipsters.map(t=>t.id));
@@ -613,7 +613,7 @@ function HomeScreen({onTab}){
         </div>
       </div>
       <div style={{display:'flex',gap:8}}>
-        <div onClick={()=>window.history.back()} style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:18,color:C.ink0}}>‹</div>
+        <div onClick={()=>reset('splash')} style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:18,color:C.ink0}}>‹</div>
         <div style={{width:36,height:36,borderRadius:18,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:15,color:C.ink0}}>🔔</div>
       </div>
     </div>
@@ -1563,94 +1563,16 @@ function MarketplaceScreen({onTab}){
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 function SettingsScreen({onTab}){
-  const {session,setSession}=useAuth();
-  const logout=async()=>{await sb.auth.signOut();setSession(null);};
-  const groups=[
-    {l:'Cuenta',rows:[{i:'👤',t:'Perfil',d:session?.user?.email||'—'},{i:'🔒',t:'Privacidad'},{i:'💰',t:'Canales privados'}]},
-    {l:'Tips',rows:[{i:'🔔',t:'Notificaciones',badge:true},{i:'#',t:'Formato cuotas',d:'Decimal'},{i:'⭐',t:'Favoritos'}]},
-    {l:'Soporte',rows:[{i:'🎧',t:'Soporte'},{i:'📋',t:'Glosario'},{i:'ℹ',t:'FAQ'}]},
-  ];
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
     <div style={{padding:'52px 16px 12px',textAlign:'center',flexShrink:0}}>
-      <Display style={{fontSize:18}}>AJUSTES</Display>
+      <Display style={{fontSize:18}}>COMUNIDAD</Display>
     </div>
-    <div style={{flex:1,overflowY:'auto'}}>
-      <div style={{padding:'0 16px 6px'}}>
-        <Card style={{display:'flex',alignItems:'center',gap:10,padding:14}}>
-          <Avatar name={session?.user?.email||'U'} size={44}/>
-          <div style={{flex:1}}>
-            <div style={{fontSize:14,fontWeight:600,color:C.ink0}}>Mi cuenta</div>
-            <Mono style={{fontSize:10,color:C.ink2}}>{session?.user?.email||'No autenticado'}</Mono>
-          </div>
-        </Card>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:20,padding:24}}>
+      <img src="https://tpjgmqsdypzvhrdxhttz.supabase.co/storage/v1/object/public/LOGOS/logo-truestats-transparent.png" style={{width:96,height:96,objectFit:'contain',filter:'drop-shadow(0 0 24px rgba(94,234,212,.35))'}}/>
+      <div style={{padding:'8px 20px',borderRadius:999,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.06)',boxShadow:'0 0 20px -7px rgba(94,234,212,0.3)'}}>
+        <Mono style={{fontSize:11,color:C.accent,letterSpacing:2,textTransform:'uppercase'}}>🚀 Próximamente...</Mono>
       </div>
-      <div style={{padding:'10px 16px 6px'}}>
-        <Card style={{padding:14,borderColor:'rgba(94,234,212,0.35)'}}>
-          <Kicker c={C.accent} style={{display:'block',marginBottom:6}}>◆ TSAI ÉLITE</Kicker>
-          <Display style={{fontSize:18,display:'block',marginBottom:6}}>Picks <span style={{color:C.accent}}>ilimitados</span>, auditoría <span style={{color:C.accent}}>AI</span>.</Display>
-          <BtnPrimary style={{height:34,fontSize:11}}>Probar 7 días — €0</BtnPrimary>
-        </Card>
-      </div>
-      {groups.map(g=><div key={g.l} style={{paddingTop:10,paddingBottom:3}}>
-        <div style={{padding:'0 22px 6px'}}><Kicker>{g.l}</Kicker></div>
-        <div style={{padding:'0 16px'}}>
-          <Card>
-            {g.rows.map((r,i)=><div key={r.t} style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderBottom:i<g.rows.length-1?`1px solid ${C.border}`:'none',cursor:'pointer'}}>
-              <div style={{width:26,height:26,borderRadius:7,background:C.bg3,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13}}>{r.i}</div>
-              <span style={{flex:1,fontSize:13,color:C.ink0}}>{r.t}</span>
-              {r.d&&<Mono style={{fontSize:11,color:C.ink2}}>{r.d}</Mono>}
-              {r.badge&&<div style={{width:14,height:14,borderRadius:7,background:C.accent,display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{color:C.accentInk,fontSize:9,fontWeight:700}}>!</span></div>}
-              <span style={{color:C.ink3}}>›</span>
-            </div>)}
-          </Card>
-        </div>
-      </div>)}
-      <div style={{padding:'18px 16px 6px'}}>
-        <Card onClick={logout} style={{padding:14,background:C.bg2,cursor:'pointer',textAlign:'center'}}>
-          <Kicker c={C.negative} style={{textTransform:'uppercase'}}>Cerrar sesión</Kicker>
-        </Card>
-      </div>
-      <div style={{textAlign:'center',padding:'12px 0 80px'}}><Kicker c={C.ink3}>TSAI · TrueStats AI · v2.0</Kicker></div>
     </div>
     <TabBar active="cuenta" onTab={onTab}/>
   </div>;
 }
-
-// ── Router ────────────────────────────────────────────────────────────────────
-function Router(){
-  const {cur,reset}=useNav();
-  const {session,loading}=useAuth();
-  const [tab,setTab]=useState('home');
-
-useEffect(()=>{
-  if(!session)reset('splash');
-  else reset('main');
-},[session]);
-
-  if(loading)return <div style={{height:'100%',background:C.bg0,display:'flex',alignItems:'center',justifyContent:'center'}}><Spinner/></div>;
-
-  const onTab=(id)=>{setTab(id);reset('main');};
-
-  if(!session){
-    if(cur.s==='login')return <LoginScreen/>;
-    return <SplashScreen/>;
-  }
-
-  if(cur.s==='chat')  return <ChatScreen  params={cur.p} onTab={onTab}/>;
-  if(cur.s==='info')  return <InfoScreen  params={cur.p} onTab={onTab}/>;
-  if(cur.s==='stats') return <StatsScreen params={cur.p}/>;
-  if(cur.s==='panel') return <PanelScreen params={cur.p}/>;
-
-  if(tab==='ranking') return <RankingScreen  onTab={onTab}/>;
-  if(tab==='market')  return <MarketplaceScreen onTab={onTab}/>;
-  if(tab==='cuenta')  return <SettingsScreen onTab={onTab}/>;
-  return <HomeScreen onTab={onTab}/>;
-}
-
-function App(){
-  return <AuthProvider><NavProvider><Router/></NavProvider></AuthProvider>;
-}
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-</script>
-</body>
-</html>
