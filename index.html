@@ -720,7 +720,7 @@ function HomeScreen({onTab}){
 
 // ── CHAT (picks reales del tipster) ───────────────────────────────────────────
 function ChatScreen({params,onTab}){
-  const {push}=useNav();
+  const {push,pop}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
   const [showJoin,setShowJoin]=useState(null); // null=no mostrar, 'ask'=pedir nombre, 'joined'=unido
   const {data:picks,loading,refetch}=usePicks(t.id);
@@ -740,6 +740,7 @@ function ChatScreen({params,onTab}){
   const [sending,setSending]=useState(false);
   const [liquidando,setLiquidando]=useState(null);
   const chatEndRef=useRef(null);
+  useEffect(()=>{setTimeout(()=>chatEndRef.current?.scrollIntoView({behavior:'auto'}),100);},[picks,mensajes]);
   const chatTopRef=useRef(null);
   const scrollRef=useRef(null);
   useEffect(()=>{if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[picks,mensajes]); // pick id abierto
@@ -753,17 +754,19 @@ const esApostador=session?.user?.role==='apostador';
 const puedeGestionar=esTipster;
 
   // Liquidar pick
-async function liquidar(pickId, resultado){
+async function liquidar(pickId, resultado, cuotaCierre=null){
   setLiquidando(null);
   const {data:boleto}=await sb.from('boletos').select('stake,cuota_total,tipster_id,tipo_acceso,fecha_procesado,casa_apuestas,tipo_apuesta,imagen_url,analisis,nivel_confianza,confianza').eq('id',pickId).single();
   const stake=parseFloat(boleto.stake)||0;
-  const cuota=parseFloat(boleto.cuota_total)||0;
+  const cuota=cuotaCierre?parseFloat(cuotaCierre):parseFloat(boleto.cuota_total)||0;
   let profit=0;
-  if(resultado==='ganado') profit=Math.round((stake*cuota-stake)*100)/100;
+  if(resultado==='ganado'||resultado==='cierre') profit=Math.round((stake*cuota-stake)*100)/100;
   else if(resultado==='perdido') profit=-stake;
 
   // Actualizar boleto
   await sb.from('boletos').update({estado:resultado,profit,settled_at:new Date().toISOString()}).eq('id',pickId);
+  // Borrar mensaje original del pick
+  await sb.from('mensajes').delete().eq('boleto_id',pickId).neq('tipo','sello');
 
   // Actualizar stats globales via RPC
 const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
@@ -913,7 +916,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
   }
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title={t.display_name||t.username||'Canal'}/>
+    <NavHeader title=""/>
     {/* Channel info strip FIJO */}
     <div style={{padding:'10px 14px 0',flexShrink:0}}>
       {/* Channel info strip */}
@@ -936,7 +939,8 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
         <div style={{height:1,background:C.border,marginBottom:10}}/>
         {/* Botones condicionales */}
         {puedeGestionar
-          ?<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          ?<div style={{display:'grid',gridTemplateColumns:'36px 1fr 1fr',gap:8}}>
+            <button onClick={()=>pop()} style={{height:36,borderRadius:8,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,color:C.ink0,fontSize:18,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
             <a href={`./ocr-scanner.html?tipster=${encodeURIComponent(t.id)}&tipsterName=${encodeURIComponent(t.display_name||t.username||'')}`}
               style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:36,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',textDecoration:'none',background:'rgba(94,234,212,.08)',border:'1px solid rgba(94,234,212,.4)',color:C.accent,boxShadow:'0 0 20px -7px rgba(94,234,212,.5),inset 0 0 18px -11px rgba(94,234,212,.6)'}}>
               <span style={{fontSize:13}}>📸</span>Scanner
@@ -946,10 +950,13 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
               <span style={{fontSize:13}}>⚙️</span>Panel
             </button>
           </div>
-          :<button onClick={()=>push('stats',{tipster:t})}
-            style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:36,borderRadius:8,width:'100%',fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',border:'1px solid rgba(52,211,153,.4)',background:'rgba(52,211,153,.08)',color:C.positive,boxShadow:'0 0 20px -7px rgba(52,211,153,.5),inset 0 0 18px -11px rgba(52,211,153,.6)'}}>
-            <span style={{fontSize:13}}>📊</span>Tipster Stats
-          </button>
+          :<div style={{display:'grid',gridTemplateColumns:'36px 1fr',gap:8}}>
+            <button onClick={()=>pop()} style={{height:36,borderRadius:8,background:'rgba(255,255,255,0.04)',border:`1px solid ${C.border}`,color:C.ink0,fontSize:18,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+            <button onClick={()=>push('stats',{tipster:t})}
+              style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:36,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',border:'1px solid rgba(52,211,153,.4)',background:'rgba(52,211,153,.08)',color:C.positive,boxShadow:'0 0 20px -7px rgba(52,211,153,.5),inset 0 0 18px -11px rgba(52,211,153,.6)'}}>
+              <span style={{fontSize:13}}>📊</span>Tipster Stats
+            </button>
+          </div>
         }
       </div>
 
@@ -989,6 +996,12 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
                     {sd.casa_apuestas&&<div style={{padding:'3px 8px',borderRadius:4,border:'1px solid rgba(94,234,212,0.4)',background:'rgba(94,234,212,0.08)',display:'flex',alignItems:'center',gap:4}}>
                       <span style={{fontSize:9}}>🏦</span><Kicker c={C.accent}>{sd.casa_apuestas}</Kicker>
                     </div>}
+                  {sd.fecha_procesado&&<div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${C.border}`,background:C.bg3,display:'flex',alignItems:'center',gap:4}}>
+                    <span style={{fontSize:9}}>🕒</span><Kicker>Pub: {new Date(sd.fecha_procesado).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</Kicker>
+                  </div>}
+                  <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${C.border}`,background:C.bg3,display:'flex',alignItems:'center',gap:4}}>
+                    <span style={{fontSize:9}}>✅</span><Kicker>Res: {new Date(item.created_at).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</Kicker>
+                  </div>
                     <div style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${isPremiumS?'rgba(168,85,247,0.4)':'rgba(52,211,153,0.4)'}`,background:isPremiumS?'rgba(168,85,247,0.08)':'rgba(52,211,153,0.08)',display:'flex',alignItems:'center',gap:4}}>
                       <span style={{fontSize:9}}>{isPremiumS?'🔒':'🔓'}</span><Kicker c={isPremiumS?C.accent2:C.positive}>{isPremiumS?'Premium':'Free'}</Kicker>
                     </div>
@@ -1351,11 +1364,11 @@ function PanelScreen({params}){
   const dailyStats=useDailyStats(t.id);
   const racha=useRacha(t.id);
 
-  async function liquidar(pickId,resultado){
+  async function liquidar(pickId,resultado,cuotaCierre=null){
     const {data:boleto}=await sb.from('boletos').select('stake,cuota_total,tipster_id,tipo_acceso').eq('id',pickId).single();
     const stake=parseFloat(boleto.stake)||0;
-    const cuota=parseFloat(boleto.cuota_total)||0;
-    let profit=resultado==='ganado'?Math.round((stake*cuota-stake)*100)/100:resultado==='perdido'?-stake:0;
+    const cuota=cuotaCierre?parseFloat(cuotaCierre):parseFloat(boleto.cuota_total)||0;
+    let profit=resultado==='cierre'?Math.round((stake*cuota-stake)*100)/100:resultado==='ganado'?Math.round((stake*cuota-stake)*100)/100:resultado==='perdido'?-stake:0;
     await sb.rpc('liquidar_boleto',{p_boleto_id:pickId,p_resultado:resultado,p_profit:profit});
     await sb.rpc('actualizar_stats_tipster',{p_tipster_id:boleto.tipster_id,p_resultado:resultado,p_stake:stake,p_profit:profit});
     const sellos={ganado:'🏆',perdido:'❌',nulo:'➖'};
@@ -1383,7 +1396,7 @@ function PanelScreen({params}){
     </div>
     <div style={{display:'flex',borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
       {[{id:'picks',label:'📋 Picks'},{id:'subs',label:'👥 Suscript.'},{id:'stats',label:'📊 Stats'}].map(tb=>
-        <button key={tb.id} onClick={()=>setTab(tb.id)} style={{flex:1,padding:'11px 0',background:'none',border:'none',borderBottom:`2px solid ${tab===tb.id?C.accent:'transparent'}`,cursor:'pointer'}}>
+        <button key={tb.id} onClick={()=>tb.id==='stats'?push('stats',{tipster:t}):setTab(tb.id)} style={{flex:1,padding:'11px 0',background:'none',border:'none',borderBottom:`2px solid ${tab===tb.id?C.accent:'transparent'}`,cursor:'pointer'}}>
           <Kicker c={tab===tb.id?C.accent:C.ink2} style={{fontWeight:tab===tb.id?700:500}}>{tb.label}</Kicker>
         </button>
       )}
@@ -1405,10 +1418,13 @@ function PanelScreen({params}){
               <span style={{padding:'2px 7px',borderRadius:4,background:'rgba(251,191,36,.1)',border:'1px solid rgba(251,191,36,.3)',fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:C.gold,textTransform:'uppercase'}}>{p.confianza||'—'}</span>
             </div>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:6}}>
             <button onClick={()=>liquidar(p.id,'ganado')} style={{height:34,background:'rgba(52,211,153,.1)',color:C.positive,border:'1px solid rgba(52,211,153,.4)',borderRadius:8,fontWeight:700,fontSize:11,cursor:'pointer'}}>✓ GANADO</button>
             <button onClick={()=>liquidar(p.id,'perdido')} style={{height:34,background:'rgba(248,113,113,.1)',color:C.negative,border:'1px solid rgba(248,113,113,.4)',borderRadius:8,fontWeight:700,fontSize:11,cursor:'pointer'}}>✗ PERDIDO</button>
-            <button onClick={()=>liquidar(p.id,'nulo')} style={{height:34,background:C.bg3,color:C.ink2,border:`1px solid ${C.border}`,borderRadius:8,fontWeight:700,fontSize:11,cursor:'pointer'}}>— NULO</button>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+            <button onClick={()=>liquidar(p.id,'nulo')} style={{height:34,background:C.bg3,color:C.ink2,border:`1px solid ${C.border}`,borderRadius:8,fontWeight:700,fontSize:10,cursor:'pointer'}}>— NULO</button>
+            <button onClick={()=>{const c=prompt('Cuota de cierre:');if(c&&c.trim())liquidar(p.id,'cierre',c.trim());}} style={{height:34,background:'rgba(251,191,36,.08)',color:C.gold,border:'1px solid rgba(251,191,36,.4)',borderRadius:8,fontWeight:700,fontSize:10,cursor:'pointer'}}>✂ CIERRE</button>
           </div>
         </div>)}
       </div>}
@@ -1437,9 +1453,7 @@ function PanelScreen({params}){
         </div>
       </div>}
       {tab==='stats'&&<div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <button onClick={()=>push('stats',{tipster:t})} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,height:40,borderRadius:8,width:'100%',fontFamily:"'JetBrains Mono',monospace",fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',cursor:'pointer',border:'1px solid rgba(168,85,247,.4)',background:'rgba(168,85,247,.08)',color:'#A855F7'}}>
-          📊 Ver estadísticas completas →
-        </button>
+
         <div style={{background:C.bg1,borderRadius:12,border:`1px solid ${C.border}`,padding:14,textAlign:'center'}}>
           <Kicker style={{display:'block',marginBottom:4}}>Yield total</Kicker>
           <Mono style={{fontSize:42,fontWeight:500,color:parseFloat(t.yield_pct)>=0?C.accent:C.negative,lineHeight:1}}>{t.yield_pct?`${parseFloat(t.yield_pct)>0?'+':''}${parseFloat(t.yield_pct).toFixed(2)}`:'—'}</Mono>
