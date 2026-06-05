@@ -516,17 +516,22 @@ function SplashScreen(){
       </Center>
       {/* Botones */}
       <div style={{position:'absolute',left:CFG.btnsLeft,top:CFG.btnsTop,
-        right:CFG.btnsLeft,display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+        right:CFG.btnsLeft,display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
         {/* Soy Tipster */}
-        <div onClick={()=>setShowModal(true)} style={{cursor:'pointer'}}>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:CFG.labelMarginTipster,flex:1}}>
           <div style={{fontFamily:CFG.labelFontTipster,fontSize:CFG.labelSizeTipster,
             color:`${CFG.colorTipster}b0`,letterSpacing:CFG.labelSpacingTipster,
-            textTransform:'uppercase',marginBottom:CFG.labelMarginTipster}}>
+            textTransform:'uppercase'}}>
             {CFG.labelTipster}
           </div>
-          <div style={{fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
-            fontSize:CFG.btnSize,color:CFG.colorTipster,letterSpacing:CFG.btnTracking,
-            lineHeight:1,display:'flex',alignItems:'center',gap:5}}>
+          <div onClick={()=>setShowModal(true)} style={{
+            display:'flex',alignItems:'center',justifyContent:'center',gap:5,
+            width:'100%',padding:`8px 0`,borderRadius:999,cursor:'pointer',
+            border:`1px solid ${CFG.colorTipster}66`,background:`${CFG.colorTipster}11`,
+            boxShadow:`0 0 20px -7px ${CFG.colorTipster}80,inset 0 0 18px -11px ${CFG.colorTipster}99`,
+            color:CFG.colorTipster,fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
+            fontSize:CFG.btnSize,letterSpacing:CFG.btnTracking,textTransform:'uppercase',
+          }}>
             <svg viewBox="0 0 24 24" width={CFG.btnIconSize} height={CFG.btnIconSize} fill="none"
               stroke={CFG.colorTipster} strokeWidth={CFG.btnIconStroke}
               strokeLinecap="round" strokeLinejoin="round">
@@ -539,15 +544,20 @@ function SplashScreen(){
         <div style={{width:CFG.separadorW,height:CFG.separadorH,
           background:CFG.separadorColor,marginBottom:CFG.separadorMargin}}/>
         {/* Soy Apostador */}
-        <div onClick={entrarApostador} style={{cursor:'pointer',textAlign:'right'}}>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:CFG.labelMarginApostador,flex:1}}>
           <div style={{fontFamily:CFG.labelFontApostador,fontSize:CFG.labelSizeApostador,
             color:`${CFG.colorApostador}b0`,letterSpacing:CFG.labelSpacingApostador,
-            textTransform:'uppercase',marginBottom:CFG.labelMarginApostador}}>
+            textTransform:'uppercase'}}>
             {CFG.labelApostador}
           </div>
-          <div style={{fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
-            fontSize:CFG.btnSize,color:CFG.colorApostador,letterSpacing:CFG.btnTracking,
-            lineHeight:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
+          <div onClick={entrarApostador} style={{
+            display:'flex',alignItems:'center',justifyContent:'center',gap:5,
+            width:'100%',padding:`8px 0`,borderRadius:999,cursor:'pointer',
+            border:`1px solid ${CFG.colorApostador}66`,background:`${CFG.colorApostador}11`,
+            boxShadow:`0 0 20px -7px ${CFG.colorApostador}80,inset 0 0 18px -11px ${CFG.colorApostador}99`,
+            color:CFG.colorApostador,fontFamily:CFG.btnFont,fontWeight:CFG.btnWeight,
+            fontSize:CFG.btnSize,letterSpacing:CFG.btnTracking,textTransform:'uppercase',
+          }}>
             <svg viewBox="0 0 24 24" width={CFG.btnIconSize} height={CFG.btnIconSize} fill="none"
               stroke={CFG.colorApostador} strokeWidth={CFG.btnIconStroke}
               strokeLinecap="round" strokeLinejoin="round">
@@ -722,19 +732,10 @@ function HomeScreen({onTab}){
 function ChatScreen({params,onTab}){
   const {push,pop}=useNav();
   const t=params?.tipster??{display_name:'GalloVIP'};
-  const [showJoin,setShowJoin]=useState(null); // null=no mostrar, 'ask'=pedir nombre, 'joined'=unido
   const {data:picks,loading,refetch}=usePicks(t.id);
   const rachaChat=useRacha(t.id);
-  const [nombreApostador,setNombreApostador]=useState('');
 
-  // Apostador: mostrar ventana de unirse antes del chat
-  useEffect(()=>{
-    if(esApostador){
-      const joined=localStorage.getItem('joined_'+t.id);
-      if(!joined) setShowJoin('ask');
-      else setShowJoin('joined');
-    }
-  },[esApostador,t.id]);
+
   const {data:mensajes,refetch:refetchMensajes}=useMensajes(t.id);
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
@@ -882,38 +883,6 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
 
   // ── Chat principal ────────────────────────────────────────────────────────
   // Pantalla "Unirme" para apostadores
-  if(esApostador && showJoin==='ask'){
-    const unirse=async()=>{
-      if(!nombreApostador.trim())return;
-      const {data:canal}=await sb.from('canales').select('id').eq('tipster_id',t.id).eq('tipo','gratis').limit(1).single();
-      const deviceId='device_'+Math.random().toString(36).slice(2)+Date.now();
-      if(canal){
-        await sb.from('suscripciones').insert({canal_id:canal.id,nombre:nombreApostador.trim(),device_id:deviceId,estado:'pendiente'});
-      }
-      localStorage.setItem('joined_'+t.id,nombreApostador.trim());
-      localStorage.setItem('device_'+t.id,deviceId);
-      setShowJoin('joined');
-    };
-    return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-      <NavHeader title={t.display_name||'Canal'}/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:28,gap:16}}>
-        <Avatar name={t.display_name||'?'} size={64} url={t.avatar_url}/>
-        <Display style={{fontSize:20,textAlign:'center'}}>{t.display_name||t.username}</Display>
-        <Kicker style={{textAlign:'center',fontSize:11,textTransform:'none',letterSpacing:0,color:C.ink1}}>Tu solicitud ha sido enviada. El tipster debe aprobarla para acceder al canal.</Kicker>
-        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:8}}>
-          <Kicker>TU NOMBRE DE USUARIO</Kicker>
-          <input value={nombreApostador} onChange={e=>setNombreApostador(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&unirse()}
-            placeholder="Ej: apostador123"
-            style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,
-              padding:'0 14px',fontSize:13,color:C.ink0,outline:'none',width:'100%'}}/>
-        </div>
-        <BtnPrimary onClick={unirse} style={{opacity:nombreApostador.trim()?1:.4}}>
-          UNIRME AL CANAL
-        </BtnPrimary>
-      </div>
-    </div>;
-  }
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
     <NavHeader title=""/>
