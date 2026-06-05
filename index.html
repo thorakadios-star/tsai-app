@@ -83,6 +83,7 @@ function useTipsters(){
   useEffect(()=>{
     sb.from('tipsters_profiles')
       .select('id,display_name,username,bio,sport_focus,is_verified,has_premium,price_monthly,total_picks,wins,losses,voids,yield_pct,win_rate_pct,profit_units,total_staked,avatar_url,created_at')
+      .eq('activo', true)
       .order('yield_pct',{ascending:false})
       .limit(20)
       .then(({data,error})=>{
