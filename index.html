@@ -741,6 +741,10 @@ function ChatScreen({params,onTab}){
   const [msg,setMsg]=useState('');
   const [sending,setSending]=useState(false);
   const [liquidando,setLiquidando]=useState(null);
+  const [showUnirse,setShowUnirse]=useState(false);
+  const [joinNombre,setJoinNombre]=useState('');
+  const [joinPass,setJoinPass]=useState('');
+  const [joinError,setJoinError]=useState('');
   const chatEndRef=useRef(null);
   useEffect(()=>{setTimeout(()=>chatEndRef.current?.scrollIntoView({behavior:'auto'}),100);},[picks,mensajes]);
   const chatTopRef=useRef(null);
@@ -754,6 +758,31 @@ function ChatScreen({params,onTab}){
 const esTipster=session?.user?.is_admin||session?.user?.role==='tipster';
 const esApostador=session?.user?.role==='apostador';
 const puedeGestionar=esTipster;
+
+  // Contraseñas de acceso por tipster
+  const PASS_TIPSTER={
+    'vip_tsai':'aaaa',
+    'wc2026':'bbbb',
+  };
+
+  async function unirseCanal(){
+    setJoinError('');
+    if(!joinNombre.trim()){setJoinError('Escribe un nombre de usuario');return;}
+    const passCorrecta=PASS_TIPSTER[t.username];
+    if(passCorrecta && joinPass!==passCorrecta){setJoinError('Contraseña incorrecta');return;}
+    const {data:canal}=await sb.from('canales').select('id').eq('tipster_id',t.id).eq('tipo','gratis').limit(1).single();
+    const deviceId='device_'+Math.random().toString(36).slice(2)+Date.now();
+    if(canal){
+      await sb.from('suscripciones').insert({
+        canal_id:canal.id,nombre:joinNombre.trim(),
+        device_id:deviceId,estado:'pendiente',
+      });
+    }
+    localStorage.setItem('joined_'+t.id,joinNombre.trim());
+    localStorage.setItem('device_'+t.id,deviceId);
+    setShowUnirse(false);
+    setJoinNombre('');setJoinPass('');
+  }
 
   // Liquidar pick
 async function liquidar(pickId, resultado, cuotaCierre=null){
@@ -886,7 +915,7 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
   // Pantalla "Unirme" para apostadores
 
   return <div style={{height:'100%',background:C.bg0,display:'flex',flexDirection:'column'}}>
-    <NavHeader title=""/>
+    <NavHeader title="" showBack={false}/>
     {/* Channel info strip FIJO */}
     <div style={{padding:'10px 14px 0',flexShrink:0}}>
       {/* Channel info strip */}
@@ -1133,8 +1162,35 @@ const {data:rpcData,error:rpcError}=await sb.rpc('actualizar_stats_tipster',{
     {/* Botón ir al inicio */}
     <button onClick={()=>chatTopRef.current?.scrollIntoView({behavior:'smooth'})} style={{position:'absolute',right:16,bottom:80,width:36,height:36,borderRadius:18,background:C.bg2,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:16,color:C.ink1,zIndex:10,boxShadow:'0 2px 8px rgba(0,0,0,.3)'}}>↑</button>
     {/* Input chat */}
-   {esApostador&&<div style={{margin:'0 14px 8px',padding:12,background:C.bg2,borderRadius:10,border:`1px solid ${C.border}`,textAlign:'center',cursor:'pointer'}}>
+   {esApostador&&<div onClick={()=>setShowUnirse(true)} style={{margin:'0 14px 8px',padding:12,background:C.bg2,borderRadius:10,border:`1px solid ${C.accent}44`,textAlign:'center',cursor:'pointer',boxShadow:`0 0 20px -10px ${C.accent}66`}}>
       <Kicker c={C.accent}>+ UNIRME AL CANAL</Kicker>
+    </div>}
+    {/* Modal unirse */}
+    {showUnirse&&<div style={{position:'absolute',inset:0,background:'rgba(6,10,24,0.92)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,zIndex:50}}>
+      <div style={{background:C.bg1,borderRadius:16,border:`1px solid ${C.border}`,padding:24,width:'100%',maxWidth:340}}>
+        <Display style={{fontSize:18,display:'block',marginBottom:4}}>Unirme al canal</Display>
+        <Kicker style={{display:'block',marginBottom:20}}>{t.display_name||t.username}</Kicker>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'flex',flexDirection:'column',gap:5}}>
+            <Kicker>NOMBRE DE USUARIO</Kicker>
+            <input value={joinNombre} onChange={e=>setJoinNombre(e.target.value)}
+              placeholder="Ej: apostador99"
+              style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,padding:'0 14px',fontSize:13,color:C.ink0,outline:'none'}}/>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:5}}>
+            <Kicker>CONTRASEÑA DEL CANAL</Kicker>
+            <input type="password" value={joinPass} onChange={e=>setJoinPass(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&unirseCanal()}
+              placeholder="••••"
+              style={{height:44,background:C.bg2,borderRadius:8,border:`1px solid ${C.borderStrong}`,padding:'0 14px',fontSize:18,color:C.ink0,outline:'none',letterSpacing:4}}/>
+          </div>
+          {joinError&&<p style={{fontSize:11,color:C.negative,textAlign:'center',margin:0}}>{joinError}</p>}
+          <BtnPrimary onClick={unirseCanal}>SOLICITAR ACCESO</BtnPrimary>
+          <button onClick={()=>{setShowUnirse(false);setJoinNombre('');setJoinPass('');setJoinError('');}} style={{background:'none',border:'none',cursor:'pointer',padding:8}}>
+            <Kicker style={{textAlign:'center',display:'block'}}>Cancelar</Kicker>
+          </button>
+        </div>
+      </div>
     </div>}
     <div style={{padding:'10px 14px 20px',borderTop:`1px solid ${C.border}`,background:C.bg0,display:'flex',gap:8,flexShrink:0}}>
       {puedeGestionar
